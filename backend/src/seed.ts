@@ -207,6 +207,28 @@ async function seed() {
     },
   });
 
+  // Tour 3: Bewertete Tour (abrechnungsStatus=1) für Phase 4 Tests
+  const kondMeyer = await prisma.kondition.findFirst({ where: { name: "Meyer Standard BMW" } });
+  await prisma.tour.create({
+    data: {
+      tourNummer: "T-2026-003",
+      tourDatum: new Date("2026-03-10"),
+      status: "abgeschlossen",
+      kfzId: kfzMeyer1!.id,
+      transportUnternehmerId: tuMeyer.id,
+      konditionId: kondMeyer!.id,
+      routeId: routeBmw1.id,
+      niederlassungId: nlGersthofen.id,
+      quittung: true,
+      quittungDatum: new Date("2026-03-10"),
+      lastKilometer: 85,
+      leerKilometer: 85,
+      mautKilometer: 70,
+      kostenKondition: 385.55,
+      abrechnungsStatus: 1,
+    },
+  });
+
   // 13b. Abfahrt + Bordero + Sendung
   const abfahrt1 = await prisma.abfahrt.create({
     data: {

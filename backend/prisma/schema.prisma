@@ -83,6 +83,7 @@ model Niederlassung {
   touren           Tour[]
   abfahrten        Abfahrt[]
   sendungen        Sendung[]
+  tuAbrechnungen   TuAbrechnung[]
 }
 
 model Oem {
@@ -170,6 +171,7 @@ model TransportUnternehmer {
   konditionen      Kondition[]
   touren           Tour[]
   abfahrten        Abfahrt[]
+  tuAbrechnungen   TuAbrechnung[]
 }
 
 model Kfz {
@@ -232,7 +234,8 @@ model Kondition {
   geaendertAm           DateTime  @updatedAt
   geloeschtAm           DateTime?
 
-  touren               Tour[]
+  touren                    Tour[]
+  tuAbrechnungsPositionen   TuAbrechnungsPosition[]
 }
 
 // ============================================================
@@ -346,6 +349,7 @@ model Tour {
 
   artikelzeilen           Artikelzeile[]
   abfahrten               Abfahrt[]
+  tuAbrechnungsPositionen TuAbrechnungsPosition[]
 }
 
 // ============================================================
@@ -416,4 +420,55 @@ model Sendung {
   erstelltAm          DateTime  @default(now())
   geaendertAm         DateTime  @updatedAt
   geloeschtAm         DateTime?
+}
+
+// ============================================================
+// ABRECHNUNG
+// ============================================================
+
+model TuAbrechnung {
+  id                      String    @id @default(uuid())
+  belegnummer             String    @unique
+  buchungsjahr            Int
+  zeitraumVon             DateTime
+  zeitraumBis             DateTime
+  transportUnternehmerId  String
+  transportUnternehmer    TransportUnternehmer @relation(fields: [transportUnternehmerId], references: [id])
+  niederlassungId         String
+  niederlassung           Niederlassung @relation(fields: [niederlassungId], references: [id])
+  anzahlPositionen        Int       @default(0)
+  gesamtbetrag            Decimal   @default(0) @db.Decimal(10, 2)
+  status                  String    @default("offen") // offen, erzeugt, storniert
+  bemerkung               String?
+  erstelltAm              DateTime  @default(now())
+  geaendertAm             DateTime  @updatedAt
+  geloeschtAm             DateTime?
+
+  positionen              TuAbrechnungsPosition[]
+}
+
+model TuAbrechnungsPosition {
+  id                String    @id @default(uuid())
+  tuAbrechnungId    String
+  tuAbrechnung      TuAbrechnung @relation(fields: [tuAbrechnungId], references: [id], onDelete: Cascade)
+  tourId            String
+  tour              Tour      @relation(fields: [tourId], references: [id])
+  tourNummer        String
+  tourDatum         DateTime
+  konditionId       String?
+  kondition         Kondition? @relation(fields: [konditionId], references: [id])
+  konditionName     String?
+  tourKosten        Decimal   @default(0) @db.Decimal(10, 2)
+  stoppKosten       Decimal   @default(0) @db.Decimal(10, 2)
+  tagKosten         Decimal   @default(0) @db.Decimal(10, 2)
+  lastKmKosten      Decimal   @default(0) @db.Decimal(10, 2)
+  leerKmKosten      Decimal   @default(0) @db.Decimal(10, 2)
+  mautKmKosten      Decimal   @default(0) @db.Decimal(10, 2)
+  gesamtKosten      Decimal   @default(0) @db.Decimal(10, 2)
+  lastKilometer     Decimal?  @db.Decimal(10, 2)
+  leerKilometer     Decimal?  @db.Decimal(10, 2)
+  mautKilometer     Decimal?  @db.Decimal(10, 2)
+  istManuell        Boolean   @default(false)
+  bemerkung         String?
+  erstelltAm        DateTime  @default(now())
 }

@@ -28,6 +28,9 @@ const navItems = [
     { label: "Nacharbeit", path: "/nacharbeit", modul: "nacharbeit" },
     { label: "Sendungsbildung", path: "/sendungsbildung", modul: "sendung" },
   ]},
+  { group: "Abrechnung", items: [
+    { label: "TU-Abrechnung", path: "/tu-abrechnung", modul: "tuabrechnung" },
+  ]},
   { group: "Administration", items: [
     { label: "Benutzer", path: "/benutzer", modul: "benutzer" },
   ]},

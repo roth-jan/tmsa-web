@@ -26,6 +26,7 @@ import { MengenplanPage } from "./pages/MengenplanPage";
 import { NacharbeitPage } from "./pages/NacharbeitPage";
 import { AbfahrtPage } from "./pages/AbfahrtPage";
 import { SendungsbildungPage } from "./pages/SendungsbildungPage";
+import { TuAbrechnungPage } from "./pages/TuAbrechnungPage";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -59,6 +60,7 @@ function AppRoutes() {
         <Route path="/abfahrten" element={<AbfahrtPage />} />
         <Route path="/nacharbeit" element={<NacharbeitPage />} />
         <Route path="/sendungsbildung" element={<SendungsbildungPage />} />
+        <Route path="/tu-abrechnung" element={<TuAbrechnungPage />} />
         <Route path="/benutzer" element={<BenutzerPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>

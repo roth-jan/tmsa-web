@@ -126,10 +126,10 @@ npx playwright test
 - [x] Nacharbeit (Korrekturen, Quittungen)
 - [x] Sendungsbildung
 
-### Phase 4: Billing
-- [ ] TU-Abrechnung (Bewerten → Freigeben → Erzeugen)
-- [ ] Konditionsberechnung
-- [ ] Storno
+### Phase 4: Billing ✅
+- [x] Konditionsberechnung (Service mit Tour/Stopp/Km-Faktoren)
+- [x] TU-Abrechnung (Bewerten → Freigeben → Erzeugen)
+- [x] Storno (setzt Tour-Status zurück)
 
 ### Phase 5: Berichte + EDI
 - [ ] Berichtswesen (Reports)

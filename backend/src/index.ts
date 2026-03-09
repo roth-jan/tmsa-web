@@ -12,6 +12,7 @@ import mengenplanRouter from "./routes/mengenplan";
 import nacharbeitRouter from "./routes/nacharbeit";
 import abfahrtRouter from "./routes/abfahrt";
 import sendungRouter from "./routes/sendung";
+import tuabrechnungRouter from "./routes/tuabrechnung";
 import {
   niederlassungRouter,
   oemRouter,
@@ -67,6 +68,7 @@ app.use("/api/mengenplan", mengenplanRouter);
 app.use("/api/nacharbeit", nacharbeitRouter);
 app.use("/api/abfahrten", abfahrtRouter);
 app.use("/api/sendungen", sendungRouter);
+app.use("/api/tu-abrechnung", tuabrechnungRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {
