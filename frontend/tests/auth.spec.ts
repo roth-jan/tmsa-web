@@ -28,7 +28,7 @@ test.describe("Login", () => {
     await page.goto("/");
 
     await expect(page.getByText("Willkommen, System Administrator")).toBeVisible();
-    await expect(page.getByText("56 Rechte").or(page.getByText("60 Rechte"))).toBeVisible();
+    await expect(page.getByText("72 Rechte")).toBeVisible();
   });
 
   test("Login als Disponent → eingeschränkte Rechte", async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe("Login", () => {
 
     await expect(page.getByText("Willkommen, Max Mustermann")).toBeVisible();
     await expect(page.getByText("Disponent")).toBeVisible();
-    await expect(page.getByText("25 Rechte")).toBeVisible();
+    await expect(page.getByText("31 Rechte")).toBeVisible();
   });
 
   test("Abmelden funktioniert", async ({ page }) => {

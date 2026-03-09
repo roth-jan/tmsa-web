@@ -6,6 +6,9 @@ import session from "express-session";
 
 import authRouter from "./routes/auth";
 import benutzerRouter from "./routes/benutzer";
+import avisRouter from "./routes/avis";
+import tourRouter from "./routes/tour";
+import mengenplanRouter from "./routes/mengenplan";
 import {
   niederlassungRouter,
   oemRouter,
@@ -16,6 +19,8 @@ import {
   kfzRouter,
   routeRouter,
   konditionRouter,
+  dispoOrtRouter,
+  dispoRegelRouter,
 } from "./routes/stammdaten";
 
 const app = express();
@@ -51,6 +56,11 @@ app.use("/api/transport-unternehmer", transportUnternehmerRouter);
 app.use("/api/kfz", kfzRouter);
 app.use("/api/routen", routeRouter);
 app.use("/api/konditionen", konditionRouter);
+app.use("/api/dispo-orte", dispoOrtRouter);
+app.use("/api/dispo-regeln", dispoRegelRouter);
+app.use("/api/avise", avisRouter);
+app.use("/api/touren", tourRouter);
+app.use("/api/mengenplan", mengenplanRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {

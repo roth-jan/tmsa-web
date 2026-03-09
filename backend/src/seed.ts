@@ -108,11 +108,94 @@ async function seed() {
     },
   });
 
-  // 10. Rechte
+  // 10. Dispo-Orte
+  await prisma.dispoOrt.create({
+    data: { bezeichnung: "Umschlag Gersthofen", plz: "86368", ort: "Gersthofen", sortierung: 1, niederlassungId: nlGersthofen.id },
+  });
+  await prisma.dispoOrt.create({
+    data: { bezeichnung: "Werk München Tor Nord", plz: "80788", ort: "München", werkId: werkMuc.id, sortierung: 2, niederlassungId: nlGersthofen.id },
+  });
+
+  // 11. Dispo-Regeln
+  await prisma.dispoRegel.create({
+    data: { bezeichnung: "BMW Standard", regeltyp: "OEM-Zuordnung", prioritaet: 1, bedingung: "OEM = BMW", aktion: "Route BMW-R001", niederlassungId: nlGersthofen.id },
+  });
+  await prisma.dispoRegel.create({
+    data: { bezeichnung: "Gewichtslimit 24t", regeltyp: "Gewicht", prioritaet: 2, bedingung: "Gewicht > 24000", aktion: "Tour splitten", niederlassungId: nlGersthofen.id },
+  });
+
+  // 12. Avise + Artikelzeilen
+  const avis1 = await prisma.avis.create({
+    data: {
+      avisNummer: "AV-2026-001",
+      ladeDatum: new Date("2026-03-10"),
+      status: "offen",
+      lieferantId: (await prisma.lieferant.findFirst({ where: { name: "Bosch GmbH" } }))!.id,
+      werkId: werkMuc.id,
+      niederlassungId: nlGersthofen.id,
+      routeId: routeBmw1.id,
+    },
+  });
+  await prisma.artikelzeile.createMany({
+    data: [
+      { artikelBeschreibung: "Stoßdämpfer vorne", menge: 500, masseinheit: "ST", gewicht: 2500, gutArt: "VOLLGUT", avisId: avis1.id },
+      { artikelBeschreibung: "Stoßdämpfer hinten", menge: 300, masseinheit: "ST", gewicht: 1800, gutArt: "VOLLGUT", avisId: avis1.id },
+      { artikelBeschreibung: "Leergut-Behälter", menge: 50, masseinheit: "PAL", gewicht: 500, gutArt: "LEERGUT", avisId: avis1.id },
+    ],
+  });
+
+  const avis2 = await prisma.avis.create({
+    data: {
+      avisNummer: "AV-2026-002",
+      ladeDatum: new Date("2026-03-10"),
+      status: "offen",
+      lieferantId: (await prisma.lieferant.findFirst({ where: { name: "Continental AG" } }))!.id,
+      werkId: werkDin.id,
+      niederlassungId: nlGersthofen.id,
+    },
+  });
+  await prisma.artikelzeile.createMany({
+    data: [
+      { artikelBeschreibung: "Bremsscheiben 340mm", menge: 200, masseinheit: "ST", gewicht: 1600, gutArt: "VOLLGUT", avisId: avis2.id },
+      { artikelBeschreibung: "Bremsbeläge Set", menge: 400, masseinheit: "ST", gewicht: 800, gutArt: "VOLLGUT", avisId: avis2.id },
+    ],
+  });
+
+  const avis3 = await prisma.avis.create({
+    data: {
+      avisNummer: "AV-2026-003",
+      ladeDatum: new Date("2026-03-11"),
+      status: "offen",
+      lieferantId: (await prisma.lieferant.findFirst({ where: { name: "ZF Friedrichshafen" } }))!.id,
+      werkId: werkMuc.id,
+      niederlassungId: nlGersthofen.id,
+      routeId: routeBmw1.id,
+    },
+  });
+  await prisma.artikelzeile.createMany({
+    data: [
+      { artikelBeschreibung: "Getriebe 8-Gang", menge: 50, masseinheit: "ST", gewicht: 4500, gutArt: "VOLLGUT", avisId: avis3.id },
+      { artikelBeschreibung: "Antriebswelle links", menge: 120, masseinheit: "ST", gewicht: 960, gutArt: "VOLLGUT", avisId: avis3.id },
+    ],
+  });
+
+  // 13. Touren (Seed mit einer Beispiel-Tour)
+  await prisma.tour.create({
+    data: {
+      tourNummer: "T-2026-001",
+      tourDatum: new Date("2026-03-10"),
+      status: "offen",
+      niederlassungId: nlGersthofen.id,
+      routeId: routeBmw1.id,
+    },
+  });
+
+  // 14. Rechte
   const module = [
     "niederlassung", "oem", "werk", "lieferant", "abladestelle",
     "tu", "kfz", "route", "kondition",
-    "avis", "mengenplan", "abfahrt", "nacharbeit", "tuabrechnung",
+    "dispoort", "disporegel",
+    "avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "tuabrechnung",
     "benutzer",
   ];
   const aktionen = ["lesen", "erstellen", "bearbeiten", "loeschen"];
@@ -143,8 +226,8 @@ async function seed() {
   });
 
   // Disponent: Leserecht auf alle Stammdaten
-  const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition"];
-  const kernModule = ["avis", "mengenplan", "abfahrt", "nacharbeit"];
+  const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition", "dispoort", "disporegel"];
+  const kernModule = ["avis", "mengenplan", "tour", "abfahrt", "nacharbeit"];
   const alleDispoRechte = await prisma.recht.findMany({
     where: {
       OR: [

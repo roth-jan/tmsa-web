@@ -7,3 +7,5 @@ export { TransportUnternehmerPage } from "./TransportUnternehmerPage";
 export { KfzPage } from "./KfzPage";
 export { RoutenPage } from "./RoutenPage";
 export { KonditionenPage } from "./KonditionenPage";
+export { DispoOrtePage } from "./DispoOrtePage";
+export { DispoRegelnPage } from "./DispoRegelnPage";

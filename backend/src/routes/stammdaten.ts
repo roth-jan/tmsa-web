@@ -14,7 +14,9 @@ type ModelName =
   | "transportUnternehmer"
   | "kfz"
   | "route"
-  | "kondition";
+  | "kondition"
+  | "dispoOrt"
+  | "dispoRegel";
 
 interface StammdatenConfig {
   model: ModelName;
@@ -225,4 +227,20 @@ export const konditionRouter = createStammdatenRouter({
   includes: { transportUnternehmer: true, route: true },
   searchFields: ["name"],
   nlFilterRelation: "transportUnternehmer",
+});
+
+export const dispoOrtRouter = createStammdatenRouter({
+  model: "dispoOrt",
+  modul: "dispoort",
+  includes: { werk: true, niederlassung: true },
+  searchFields: ["bezeichnung", "ort", "plz"],
+  nlFilterField: "niederlassungId",
+});
+
+export const dispoRegelRouter = createStammdatenRouter({
+  model: "dispoRegel",
+  modul: "disporegel",
+  includes: { niederlassung: true },
+  searchFields: ["bezeichnung", "regeltyp"],
+  nlFilterField: "niederlassungId",
 });

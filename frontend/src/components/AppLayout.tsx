@@ -16,6 +16,13 @@ const navItems = [
     { label: "Routen", path: "/routen", modul: "route" },
     { label: "Konditionen", path: "/konditionen", modul: "kondition" },
   ]},
+  { group: "Disposition", items: [
+    { label: "Avise", path: "/avise", modul: "avis" },
+    { label: "Touren", path: "/touren", modul: "tour" },
+    { label: "Mengenplan", path: "/mengenplan", modul: "mengenplan" },
+    { label: "Dispo-Orte", path: "/dispo-orte", modul: "dispoort" },
+    { label: "Dispo-Regeln", path: "/dispo-regeln", modul: "disporegel" },
+  ]},
   { group: "Administration", items: [
     { label: "Benutzer", path: "/benutzer", modul: "benutzer" },
   ]},

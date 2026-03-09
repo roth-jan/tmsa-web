@@ -17,7 +17,12 @@ import {
   KfzPage,
   RoutenPage,
   KonditionenPage,
+  DispoOrtePage,
+  DispoRegelnPage,
 } from "./pages/stammdaten";
+import { AvisPage } from "./pages/AvisPage";
+import { TourPage } from "./pages/TourPage";
+import { MengenplanPage } from "./pages/MengenplanPage";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -43,6 +48,11 @@ function AppRoutes() {
         <Route path="/kfz" element={<KfzPage />} />
         <Route path="/routen" element={<RoutenPage />} />
         <Route path="/konditionen" element={<KonditionenPage />} />
+        <Route path="/dispo-orte" element={<DispoOrtePage />} />
+        <Route path="/dispo-regeln" element={<DispoRegelnPage />} />
+        <Route path="/avise" element={<AvisPage />} />
+        <Route path="/touren" element={<TourPage />} />
+        <Route path="/mengenplan" element={<MengenplanPage />} />
         <Route path="/benutzer" element={<BenutzerPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
