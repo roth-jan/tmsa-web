@@ -131,11 +131,17 @@ npx playwright test
 - [x] TU-Abrechnung (Bewerten → Freigeben → Erzeugen)
 - [x] Storno (setzt Tour-Status zurück)
 
-### Phase 5: Berichte + EDI
-- [ ] Berichtswesen (Reports)
+### Phase 5: Berichte MVP ✅
+- [x] CSV-Export Helper (UTF-8 BOM, Semikolon, Dezimalkomma)
+- [x] 6 Kernberichte (Touren, Avise, TU-Kosten, Abfahrten, Sendungen, Abrechnungen)
+- [x] AG Grid Vorschau + CSV-Download je Bericht
+- [x] Berichte-Modul mit Rechteverwaltung (Admin + Disponent)
+
+### Phase 6: EDI + Erweiterungen
 - [ ] VDA 4913 (BMW, Daimler, VW, Porsche, MAN)
 - [ ] Weitere EDI (VDA4927, DESADV, IFCSUM, IFTSTA)
 - [ ] Forecast
+- [ ] Erweiterte Berichte (OEM-spezifisch, Ausfallfrachten)
 
 ---
 
