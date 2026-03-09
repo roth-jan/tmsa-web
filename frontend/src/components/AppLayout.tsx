@@ -23,6 +23,11 @@ const navItems = [
     { label: "Dispo-Orte", path: "/dispo-orte", modul: "dispoort" },
     { label: "Dispo-Regeln", path: "/dispo-regeln", modul: "disporegel" },
   ]},
+  { group: "Operativ", items: [
+    { label: "Abfahrten", path: "/abfahrten", modul: "abfahrt" },
+    { label: "Nacharbeit", path: "/nacharbeit", modul: "nacharbeit" },
+    { label: "Sendungsbildung", path: "/sendungsbildung", modul: "sendung" },
+  ]},
   { group: "Administration", items: [
     { label: "Benutzer", path: "/benutzer", modul: "benutzer" },
   ]},

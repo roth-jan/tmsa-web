@@ -81,6 +81,8 @@ model Niederlassung {
   dispoRegeln      DispoRegel[]
   avise            Avis[]
   touren           Tour[]
+  abfahrten        Abfahrt[]
+  sendungen        Sendung[]
 }
 
 model Oem {
@@ -95,6 +97,7 @@ model Oem {
 
   werke            Werk[]
   routen           Route[]
+  sendungen        Sendung[]
 }
 
 model Werk {
@@ -114,6 +117,7 @@ model Werk {
   abladestellen Abladestelle[]
   dispoOrte     DispoOrt[]
   avise         Avis[]
+  sendungen     Sendung[]
 }
 
 model Lieferant {
@@ -130,6 +134,7 @@ model Lieferant {
   geloeschtAm       DateTime?
 
   avise             Avis[]
+  sendungen         Sendung[]
 }
 
 model Abladestelle {
@@ -144,6 +149,7 @@ model Abladestelle {
   geloeschtAm DateTime?
 
   avise       Avis[]
+  sendungen   Sendung[]
 }
 
 model TransportUnternehmer {
@@ -163,6 +169,7 @@ model TransportUnternehmer {
   fahrzeuge        Kfz[]
   konditionen      Kondition[]
   touren           Tour[]
+  abfahrten        Abfahrt[]
 }
 
 model Kfz {
@@ -181,6 +188,7 @@ model Kfz {
   geloeschtAm        DateTime?
 
   touren             Tour[]
+  abfahrten          Abfahrt[]
 }
 
 model Route {
@@ -200,6 +208,7 @@ model Route {
   konditionen    Kondition[]
   avise          Avis[]
   touren         Tour[]
+  abfahrten      Abfahrt[]
 }
 
 model Kondition {
@@ -322,6 +331,13 @@ model Tour {
   kostenManuell           Decimal?  @db.Decimal(10, 2)
   bemerkungIntern         String?
   bemerkungExtern         String?
+  // Nacharbeit-Felder
+  quittung                Boolean   @default(false)
+  quittungDatum           DateTime?
+  istLeerfahrt            Boolean   @default(false)
+  abrechnungsStopp        Boolean   @default(false)
+  abrechnungsStatus       Int       @default(0) // 0=offen, 1=bewertet, 2=freigegeben, 3=erzeugt
+  bemerkungAbrechnung     String?
   niederlassungId         String
   niederlassung           Niederlassung @relation(fields: [niederlassungId], references: [id])
   erstelltAm              DateTime  @default(now())
@@ -329,4 +345,75 @@ model Tour {
   geloeschtAm             DateTime?
 
   artikelzeilen           Artikelzeile[]
+  abfahrten               Abfahrt[]
+}
+
+// ============================================================
+// OPERATIV
+// ============================================================
+
+model Abfahrt {
+  id                      String    @id @default(uuid())
+  abfahrtNummer           String    @unique
+  datum                   DateTime
+  status                  String    @default("offen") // offen, abgefahren, abgeschlossen
+  abrechnungsStatus       Int       @default(0) // 0=offen, 1=bewertet, 2=freigegeben, 3=erzeugt
+  kfzId                   String?
+  kfz                     Kfz?      @relation(fields: [kfzId], references: [id])
+  transportUnternehmerId  String?
+  transportUnternehmer    TransportUnternehmer? @relation(fields: [transportUnternehmerId], references: [id])
+  routeId                 String?
+  route                   Route?    @relation(fields: [routeId], references: [id])
+  tourId                  String?
+  tour                    Tour?     @relation(fields: [tourId], references: [id])
+  niederlassungId         String
+  niederlassung           Niederlassung @relation(fields: [niederlassungId], references: [id])
+  bemerkung               String?
+  erstelltAm              DateTime  @default(now())
+  geaendertAm             DateTime  @updatedAt
+  geloeschtAm             DateTime?
+
+  borderos                Bordero[]
+}
+
+model Bordero {
+  id              String    @id @default(uuid())
+  borderoNummer   String    @unique
+  abfahrtId       String
+  abfahrt         Abfahrt   @relation(fields: [abfahrtId], references: [id])
+  gewicht         Decimal?  @db.Decimal(10, 2)
+  lademeter       Decimal?  @db.Decimal(10, 2)
+  status          String    @default("offen") // offen, borderiert, abgeschlossen
+  bemerkung       String?
+  erstelltAm      DateTime  @default(now())
+  geaendertAm     DateTime  @updatedAt
+
+  sendungen       Sendung[]
+}
+
+model Sendung {
+  id                  String    @id @default(uuid())
+  sendungNummer       String    @unique
+  datum               DateTime
+  status              Int       @default(0) // 0=offen, 1=borderiert, 2=storniert
+  richtungsArt        String    @default("WE") // WE, WA, 3G
+  borderoId           String?
+  bordero             Bordero?  @relation(fields: [borderoId], references: [id])
+  oemId               String?
+  oem                 Oem?      @relation(fields: [oemId], references: [id])
+  werkId              String?
+  werk                Werk?     @relation(fields: [werkId], references: [id])
+  lieferantId         String?
+  lieferant           Lieferant? @relation(fields: [lieferantId], references: [id])
+  abladestelleId      String?
+  abladestelle        Abladestelle? @relation(fields: [abladestelleId], references: [id])
+  niederlassungId     String
+  niederlassung       Niederlassung @relation(fields: [niederlassungId], references: [id])
+  gewicht             Decimal?  @db.Decimal(10, 2)
+  lademeter           Decimal?  @db.Decimal(10, 2)
+  bemerkungExtern     String?
+  istSonderfahrt      Boolean   @default(false)
+  erstelltAm          DateTime  @default(now())
+  geaendertAm         DateTime  @updatedAt
+  geloeschtAm         DateTime?
 }

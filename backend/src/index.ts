@@ -9,6 +9,9 @@ import benutzerRouter from "./routes/benutzer";
 import avisRouter from "./routes/avis";
 import tourRouter from "./routes/tour";
 import mengenplanRouter from "./routes/mengenplan";
+import nacharbeitRouter from "./routes/nacharbeit";
+import abfahrtRouter from "./routes/abfahrt";
+import sendungRouter from "./routes/sendung";
 import {
   niederlassungRouter,
   oemRouter,
@@ -61,6 +64,9 @@ app.use("/api/dispo-regeln", dispoRegelRouter);
 app.use("/api/avise", avisRouter);
 app.use("/api/touren", tourRouter);
 app.use("/api/mengenplan", mengenplanRouter);
+app.use("/api/nacharbeit", nacharbeitRouter);
+app.use("/api/abfahrten", abfahrtRouter);
+app.use("/api/sendungen", sendungRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {

@@ -179,14 +179,72 @@ async function seed() {
     ],
   });
 
-  // 13. Touren (Seed mit einer Beispiel-Tour)
-  await prisma.tour.create({
+  // 13. Touren
+  const tour1 = await prisma.tour.create({
     data: {
       tourNummer: "T-2026-001",
       tourDatum: new Date("2026-03-10"),
-      status: "offen",
+      status: "disponiert",
       niederlassungId: nlGersthofen.id,
       routeId: routeBmw1.id,
+    },
+  });
+
+  const kfzMeyer1 = await prisma.kfz.findFirst({ where: { kennzeichen: "A-ME-1234" } });
+
+  const tour2 = await prisma.tour.create({
+    data: {
+      tourNummer: "T-2026-002",
+      tourDatum: new Date("2026-03-10"),
+      status: "abgefahren",
+      kfzId: kfzMeyer1!.id,
+      transportUnternehmerId: tuMeyer.id,
+      routeId: routeBmw1.id,
+      niederlassungId: nlGersthofen.id,
+      quittung: true,
+      quittungDatum: new Date("2026-03-10"),
+      lastKilometer: 120,
+    },
+  });
+
+  // 13b. Abfahrt + Bordero + Sendung
+  const abfahrt1 = await prisma.abfahrt.create({
+    data: {
+      abfahrtNummer: "AF-2026-001",
+      datum: new Date("2026-03-10"),
+      status: "abgefahren",
+      kfzId: kfzMeyer1!.id,
+      transportUnternehmerId: tuMeyer.id,
+      routeId: routeBmw1.id,
+      tourId: tour2.id,
+      niederlassungId: nlGersthofen.id,
+    },
+  });
+
+  const bordero1 = await prisma.bordero.create({
+    data: {
+      borderoNummer: "B-2026-001",
+      abfahrtId: abfahrt1.id,
+      gewicht: 2500,
+      lademeter: 6.5,
+      status: "offen",
+    },
+  });
+
+  const bosch = await prisma.lieferant.findFirst({ where: { name: "Bosch GmbH" } });
+  await prisma.sendung.create({
+    data: {
+      sendungNummer: "S-2026-001",
+      datum: new Date("2026-03-10"),
+      status: 1,
+      richtungsArt: "WE",
+      borderoId: bordero1.id,
+      werkId: werkMuc.id,
+      oemId: bmw.id,
+      lieferantId: bosch!.id,
+      niederlassungId: nlGersthofen.id,
+      gewicht: 2500,
+      lademeter: 6.5,
     },
   });
 
@@ -195,7 +253,7 @@ async function seed() {
     "niederlassung", "oem", "werk", "lieferant", "abladestelle",
     "tu", "kfz", "route", "kondition",
     "dispoort", "disporegel",
-    "avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "tuabrechnung",
+    "avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung", "tuabrechnung",
     "benutzer",
   ];
   const aktionen = ["lesen", "erstellen", "bearbeiten", "loeschen"];
@@ -227,7 +285,7 @@ async function seed() {
 
   // Disponent: Leserecht auf alle Stammdaten
   const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition", "dispoort", "disporegel"];
-  const kernModule = ["avis", "mengenplan", "tour", "abfahrt", "nacharbeit"];
+  const kernModule = ["avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung"];
   const alleDispoRechte = await prisma.recht.findMany({
     where: {
       OR: [

@@ -23,6 +23,9 @@ import {
 import { AvisPage } from "./pages/AvisPage";
 import { TourPage } from "./pages/TourPage";
 import { MengenplanPage } from "./pages/MengenplanPage";
+import { NacharbeitPage } from "./pages/NacharbeitPage";
+import { AbfahrtPage } from "./pages/AbfahrtPage";
+import { SendungsbildungPage } from "./pages/SendungsbildungPage";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -53,6 +56,9 @@ function AppRoutes() {
         <Route path="/avise" element={<AvisPage />} />
         <Route path="/touren" element={<TourPage />} />
         <Route path="/mengenplan" element={<MengenplanPage />} />
+        <Route path="/abfahrten" element={<AbfahrtPage />} />
+        <Route path="/nacharbeit" element={<NacharbeitPage />} />
+        <Route path="/sendungsbildung" element={<SendungsbildungPage />} />
         <Route path="/benutzer" element={<BenutzerPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
