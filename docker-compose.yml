@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tmsa-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tmsa
+      POSTGRES_USER: tmsa
+      POSTGRES_PASSWORD: tmsa2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - tmsa-pgdata:/var/lib/postgresql/data
+
+volumes:
+  tmsa-pgdata:

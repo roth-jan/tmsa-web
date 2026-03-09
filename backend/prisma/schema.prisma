@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// AUTH & BERECHTIGUNGEN
+// ============================================================
+
+model Benutzer {
+  id               String    @id @default(uuid())
+  benutzername     String    @unique
+  passwortHash     String
+  vorname          String
+  nachname         String
+  email            String?
+  aktiv            Boolean   @default(true)
+  niederlassungId  String?
+  niederlassung    Niederlassung? @relation(fields: [niederlassungId], references: [id])
+  rollen           BenutzerRolle[]
+  erstelltAm       DateTime  @default(now())
+  geaendertAm      DateTime  @updatedAt
+}
+
+model Rolle {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  beschreibung String?
+  benutzer    BenutzerRolle[]
+  rechte      RolleRecht[]
+  erstelltAm  DateTime  @default(now())
+}
+
+model BenutzerRolle {
+  benutzerId String
+  rolleId    String
+  benutzer   Benutzer @relation(fields: [benutzerId], references: [id])
+  rolle      Rolle    @relation(fields: [rolleId], references: [id])
+  @@id([benutzerId, rolleId])
+}
+
+model Recht {
+  id     String @id @default(uuid())
+  modul  String
+  aktion String
+  rollen RolleRecht[]
+  @@unique([modul, aktion])
+}
+
+model RolleRecht {
+  rolleId String
+  rechtId String
+  rolle   Rolle @relation(fields: [rolleId], references: [id])
+  recht   Recht @relation(fields: [rechtId], references: [id])
+  @@id([rolleId, rechtId])
+}
+
+// ============================================================
+// STAMMDATEN
+// ============================================================
+
+model Niederlassung {
+  id               String    @id @default(uuid())
+  name             String
+  kurzbezeichnung  String
+  adresse          String?
+  plz              String?
+  ort              String?
+  aktiv            Boolean   @default(true)
+  erstelltAm       DateTime  @default(now())
+  geaendertAm      DateTime  @updatedAt
+  geloeschtAm      DateTime?
+
+  benutzer         Benutzer[]
+  transportUnternehmer TransportUnternehmer[]
+}
+
+model Oem {
+  id               String    @id @default(uuid())
+  name             String
+  kurzbezeichnung  String
+  ediKennung       String?
+  aktiv            Boolean   @default(true)
+  erstelltAm       DateTime  @default(now())
+  geaendertAm      DateTime  @updatedAt
+  geloeschtAm      DateTime?
+
+  werke            Werk[]
+  routen           Route[]
+}
+
+model Werk {
+  id          String    @id @default(uuid())
+  name        String
+  werkscode   String?
+  adresse     String?
+  plz         String?
+  ort         String?
+  aktiv       Boolean   @default(true)
+  oemId       String
+  oem         Oem       @relation(fields: [oemId], references: [id])
+  erstelltAm  DateTime  @default(now())
+  geaendertAm DateTime  @updatedAt
+  geloeschtAm DateTime?
+
+  abladestellen Abladestelle[]
+}
+
+model Lieferant {
+  id                String    @id @default(uuid())
+  name              String
+  lieferantennummer String?
+  adresse           String?
+  plz               String?
+  ort               String?
+  land              String?
+  aktiv             Boolean   @default(true)
+  erstelltAm        DateTime  @default(now())
+  geaendertAm       DateTime  @updatedAt
+  geloeschtAm       DateTime?
+}
+
+model Abladestelle {
+  id          String    @id @default(uuid())
+  name        String
+  werkId      String
+  werk        Werk      @relation(fields: [werkId], references: [id])
+  entladeZone String?
+  aktiv       Boolean   @default(true)
+  erstelltAm  DateTime  @default(now())
+  geaendertAm DateTime  @updatedAt
+  geloeschtAm DateTime?
+}
+
+model TransportUnternehmer {
+  id               String    @id @default(uuid())
+  name             String
+  kurzbezeichnung  String
+  adresse          String?
+  plz              String?
+  ort              String?
+  niederlassungId  String
+  niederlassung    Niederlassung @relation(fields: [niederlassungId], references: [id])
+  aktiv            Boolean   @default(true)
+  erstelltAm       DateTime  @default(now())
+  geaendertAm      DateTime  @updatedAt
+  geloeschtAm      DateTime?
+
+  fahrzeuge        Kfz[]
+  konditionen      Kondition[]
+}
+
+model Kfz {
+  id                 String    @id @default(uuid())
+  kennzeichen        String
+  transportUnternehmerId String
+  transportUnternehmer  TransportUnternehmer @relation(fields: [transportUnternehmerId], references: [id])
+  fabrikat           String?
+  lkwTyp             String?
+  maxLdm             Decimal?  @db.Decimal(10, 2)
+  maxGewicht         Decimal?  @db.Decimal(10, 2)
+  schadstoffklasse   String?
+  aktiv              Boolean   @default(true)
+  erstelltAm         DateTime  @default(now())
+  geaendertAm        DateTime  @updatedAt
+  geloeschtAm        DateTime?
+}
+
+model Route {
+  id             String    @id @default(uuid())
+  routennummer   String
+  oemId          String
+  oem            Oem       @relation(fields: [oemId], references: [id])
+  beschreibung   String?
+  kilometerLast  Decimal?  @db.Decimal(10, 2)
+  kilometerLeer  Decimal?  @db.Decimal(10, 2)
+  kilometerMaut  Decimal?  @db.Decimal(10, 2)
+  aktiv          Boolean   @default(true)
+  erstelltAm     DateTime  @default(now())
+  geaendertAm    DateTime  @updatedAt
+  geloeschtAm    DateTime?
+
+  konditionen    Kondition[]
+}
+
+model Kondition {
+  id                    String    @id @default(uuid())
+  name                  String
+  transportUnternehmerId String
+  transportUnternehmer  TransportUnternehmer @relation(fields: [transportUnternehmerId], references: [id])
+  routeId               String?
+  route                 Route?    @relation(fields: [routeId], references: [id])
+  tourFaktor            Decimal?  @db.Decimal(10, 4)
+  stoppFaktor           Decimal?  @db.Decimal(10, 4)
+  tagFaktor             Decimal?  @db.Decimal(10, 4)
+  lastKmFaktor          Decimal?  @db.Decimal(10, 4)
+  leerKmFaktor          Decimal?  @db.Decimal(10, 4)
+  mautKmFaktor          Decimal?  @db.Decimal(10, 4)
+  maximalFrachtProTour  Decimal?  @db.Decimal(10, 2)
+  maximalFrachtProTag   Decimal?  @db.Decimal(10, 2)
+  gueltigVon            DateTime
+  gueltigBis            DateTime?
+  erstelltAm            DateTime  @default(now())
+  geaendertAm           DateTime  @updatedAt
+  geloeschtAm           DateTime?
+}
