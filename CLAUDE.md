@@ -121,10 +121,10 @@ npx playwright test
 - [x] Mengenplan/Disposition (Two-Panel UI, Button-Zuweisung)
 - [ ] Gebrochene Verkehre (→ verschoben auf Phase 3+)
 
-### Phase 3: Operativ
-- [ ] Abfahrt (Borderos, Sendungen)
-- [ ] Nacharbeit (Korrekturen, Quittungen)
-- [ ] Sendungsbildung
+### Phase 3: Operativ ✅
+- [x] Abfahrt (Borderos, Sendungen)
+- [x] Nacharbeit (Korrekturen, Quittungen)
+- [x] Sendungsbildung
 
 ### Phase 4: Billing
 - [ ] TU-Abrechnung (Bewerten → Freigeben → Erzeugen)
