@@ -16,7 +16,14 @@ export function TransportUnternehmerPage() {
       formFields={[
         { name: "name", label: "Name", required: true },
         { name: "kurzbezeichnung", label: "Kurzbezeichnung", required: true },
-        { name: "niederlassungId", label: "Niederlassung-ID", required: true },
+        {
+          name: "niederlassungId",
+          label: "Niederlassung",
+          type: "select",
+          required: true,
+          optionsEndpoint: "/niederlassungen",
+          optionsLabel: (nl: any) => `${nl.name} (${nl.kurzbezeichnung})`,
+        },
         { name: "adresse", label: "Adresse" },
         { name: "plz", label: "PLZ" },
         { name: "ort", label: "Ort" },

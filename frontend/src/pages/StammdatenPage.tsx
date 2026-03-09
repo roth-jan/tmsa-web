@@ -4,6 +4,7 @@ import {
   Button,
   Group,
   TextInput,
+  Select,
   Modal,
   Stack,
   LoadingOverlay,
@@ -17,19 +18,22 @@ import { api } from "../api/client";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+export interface FormField {
+  name: string;
+  label: string;
+  type?: "text" | "number" | "select";
+  required?: boolean;
+  /** Für type="select": API-Endpoint zum Laden der Optionen */
+  optionsEndpoint?: string;
+  /** Für type="select": Welches Feld als Label anzeigen */
+  optionsLabel?: string | ((item: any) => string);
+}
+
 interface StammdatenPageProps {
   titel: string;
   apiEndpoint: string;
   columns: ColDef[];
   formFields: FormField[];
-}
-
-interface FormField {
-  name: string;
-  label: string;
-  type?: "text" | "number" | "select";
-  required?: boolean;
-  options?: { value: string; label: string }[];
 }
 
 export function StammdatenPage({
@@ -45,6 +49,8 @@ export function StammdatenPage({
   const [editId, setEditId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
+  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [selectOptions, setSelectOptions] = useState<Record<string, { value: string; label: string }[]>>({});
 
   const laden = useCallback(async () => {
     setLoading(true);
@@ -62,17 +68,44 @@ export function StammdatenPage({
     laden();
   }, [laden]);
 
-  const neuAnlegen = () => {
+  // Dropdown-Optionen laden wenn Modal öffnet
+  const ladeSelectOptionen = useCallback(async () => {
+    const selectFields = formFields.filter((f) => f.type === "select" && f.optionsEndpoint);
+    const results: Record<string, { value: string; label: string }[]> = {};
+
+    await Promise.all(
+      selectFields.map(async (field) => {
+        try {
+          const res = await api(`${field.optionsEndpoint}?limit=500`);
+          results[field.name] = res.data.map((item: any) => ({
+            value: item.id,
+            label:
+              typeof field.optionsLabel === "function"
+                ? field.optionsLabel(item)
+                : item[field.optionsLabel || "name"],
+          }));
+        } catch {
+          results[field.name] = [];
+        }
+      })
+    );
+
+    setSelectOptions(results);
+  }, [formFields]);
+
+  const neuAnlegen = async () => {
     setFormData({});
     setEditId(null);
     setError("");
+    await ladeSelectOptionen();
     open();
   };
 
-  const bearbeiten = (row: any) => {
+  const bearbeiten = async (row: any) => {
     setFormData({ ...row });
     setEditId(row.id);
     setError("");
+    await ladeSelectOptionen();
     open();
   };
 
@@ -116,7 +149,36 @@ export function StammdatenPage({
     }
   };
 
-  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const renderFormField = (field: FormField) => {
+    if (field.type === "select") {
+      return (
+        <Select
+          key={field.name}
+          label={field.label}
+          required={field.required}
+          data={selectOptions[field.name] || []}
+          value={formData[field.name] || null}
+          onChange={(val) => setFormData({ ...formData, [field.name]: val })}
+          searchable
+          clearable
+          placeholder="Bitte wählen..."
+        />
+      );
+    }
+
+    return (
+      <TextInput
+        key={field.name}
+        label={field.label}
+        required={field.required}
+        type={field.type === "number" ? "number" : "text"}
+        value={formData[field.name] || ""}
+        onChange={(e) =>
+          setFormData({ ...formData, [field.name]: e.target.value })
+        }
+      />
+    );
+  };
 
   return (
     <Stack>
@@ -174,18 +236,7 @@ export function StammdatenPage({
           </Alert>
         )}
         <Stack>
-          {formFields.map((field) => (
-            <TextInput
-              key={field.name}
-              label={field.label}
-              required={field.required}
-              type={field.type === "number" ? "number" : "text"}
-              value={formData[field.name] || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, [field.name]: e.target.value })
-              }
-            />
-          ))}
+          {formFields.map(renderFormField)}
           <Group justify="flex-end">
             <Button variant="default" onClick={close}>
               Abbrechen

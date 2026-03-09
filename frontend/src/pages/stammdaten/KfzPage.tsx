@@ -16,7 +16,14 @@ export function KfzPage() {
       ]}
       formFields={[
         { name: "kennzeichen", label: "Kennzeichen", required: true },
-        { name: "transportUnternehmerId", label: "TU-ID", required: true },
+        {
+          name: "transportUnternehmerId",
+          label: "Transport-Unternehmer",
+          type: "select",
+          required: true,
+          optionsEndpoint: "/transport-unternehmer",
+          optionsLabel: (tu: any) => `${tu.name} (${tu.kurzbezeichnung})`,
+        },
         { name: "fabrikat", label: "Fabrikat" },
         { name: "lkwTyp", label: "LKW-Typ" },
         { name: "maxLdm", label: "Max. Lademeter", type: "number" },

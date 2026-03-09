@@ -17,8 +17,21 @@ export function KonditionenPage() {
       ]}
       formFields={[
         { name: "name", label: "Name", required: true },
-        { name: "transportUnternehmerId", label: "TU-ID", required: true },
-        { name: "routeId", label: "Route-ID" },
+        {
+          name: "transportUnternehmerId",
+          label: "Transport-Unternehmer",
+          type: "select",
+          required: true,
+          optionsEndpoint: "/transport-unternehmer",
+          optionsLabel: (tu: any) => `${tu.name} (${tu.kurzbezeichnung})`,
+        },
+        {
+          name: "routeId",
+          label: "Route",
+          type: "select",
+          optionsEndpoint: "/routen",
+          optionsLabel: (r: any) => `${r.routennummer} — ${r.beschreibung || ""}`,
+        },
         { name: "tourFaktor", label: "Tour-Faktor", type: "number" },
         { name: "stoppFaktor", label: "Stopp-Faktor", type: "number" },
         { name: "tagFaktor", label: "Tag-Faktor", type: "number" },

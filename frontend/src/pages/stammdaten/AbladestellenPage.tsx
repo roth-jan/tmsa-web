@@ -14,7 +14,14 @@ export function AbladestellenPage() {
       ]}
       formFields={[
         { name: "name", label: "Name", required: true },
-        { name: "werkId", label: "Werk-ID", required: true },
+        {
+          name: "werkId",
+          label: "Werk",
+          type: "select",
+          required: true,
+          optionsEndpoint: "/werke",
+          optionsLabel: (w: any) => `${w.name} (${w.oem?.name || ""})`,
+        },
         { name: "entladeZone", label: "Entladezone" },
       ]}
     />

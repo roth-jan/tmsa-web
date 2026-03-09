@@ -16,7 +16,14 @@ export function RoutenPage() {
       ]}
       formFields={[
         { name: "routennummer", label: "Routennummer", required: true },
-        { name: "oemId", label: "OEM-ID", required: true },
+        {
+          name: "oemId",
+          label: "OEM",
+          type: "select",
+          required: true,
+          optionsEndpoint: "/oems",
+          optionsLabel: "name",
+        },
         { name: "beschreibung", label: "Beschreibung" },
         { name: "kilometerLast", label: "Kilometer Last", type: "number" },
         { name: "kilometerLeer", label: "Kilometer Leer", type: "number" },

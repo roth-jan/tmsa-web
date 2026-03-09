@@ -16,7 +16,14 @@ export function WerkePage() {
       formFields={[
         { name: "name", label: "Name", required: true },
         { name: "werkscode", label: "Werkscode" },
-        { name: "oemId", label: "OEM-ID", required: true },
+        {
+          name: "oemId",
+          label: "OEM",
+          type: "select",
+          required: true,
+          optionsEndpoint: "/oems",
+          optionsLabel: "name",
+        },
         { name: "adresse", label: "Adresse" },
         { name: "plz", label: "PLZ" },
         { name: "ort", label: "Ort" },
