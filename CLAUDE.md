@@ -101,24 +101,25 @@ npx playwright test
 
 ## Module & Phasen
 
-### Phase 1: Fundament + Stammdaten
+### Phase 1: Fundament + Stammdaten ✅
 - [x] Projekt-Setup
-- [ ] Auth (Login, Benutzer, Rechte)
-- [ ] Niederlassung (Geschäftsstellen)
-- [ ] OEM (BMW, Daimler, VW, Porsche, MAN)
-- [ ] Werk (Produktionsstandorte)
-- [ ] Lieferant (Zulieferer)
-- [ ] Abladestelle (Entladeorte an Werken)
-- [ ] TU (Transport-Unternehmer / Carrier)
-- [ ] KFZ (Fahrzeuge)
-- [ ] Route (Transportwege)
-- [ ] Kondition (Preisberechnung)
+- [x] Auth (Login, Benutzer, Rechte)
+- [x] Niederlassung (Geschäftsstellen)
+- [x] OEM (BMW, Daimler, VW, Porsche, MAN)
+- [x] Werk (Produktionsstandorte)
+- [x] Lieferant (Zulieferer)
+- [x] Abladestelle (Entladeorte an Werken)
+- [x] TU (Transport-Unternehmer / Carrier)
+- [x] KFZ (Fahrzeuge)
+- [x] Route (Transportwege)
+- [x] Kondition (Preisberechnung)
 
-### Phase 2: Kern-Business (Disposition)
-- [ ] Avis (Voranmeldung einer Sendung)
-- [ ] Mengenplan/Disposition (Kern-Modul — Pivot-Grid, Drag&Drop)
-- [ ] DispoOrt, DispoRegel
-- [ ] Gebrochene Verkehre (Streckenabschnitte, LagerRouting)
+### Phase 2: Kern-Business (Disposition) ✅
+- [x] DispoOrt, DispoRegel (Factory-Pattern CRUD)
+- [x] Avis + Artikelzeilen (Master-Detail, Custom Router)
+- [x] Tour (Custom Router, Artikelzeile zuweisen/entfernen)
+- [x] Mengenplan/Disposition (Two-Panel UI, Button-Zuweisung)
+- [ ] Gebrochene Verkehre (→ verschoben auf Phase 3+)
 
 ### Phase 3: Operativ
 - [ ] Abfahrt (Borderos, Sendungen)
