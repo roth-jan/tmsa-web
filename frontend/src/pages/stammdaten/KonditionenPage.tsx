@@ -5,6 +5,7 @@ export function KonditionenPage() {
     <StammdatenPage
       titel="Konditionen"
       apiEndpoint="/konditionen"
+      modul="kondition"
       columns={[
         { field: "name", headerName: "Name", flex: 1 },
         { field: "transportUnternehmer.name", headerName: "TU", width: 180 },

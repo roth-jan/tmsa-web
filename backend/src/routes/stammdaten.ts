@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireRecht } from "../middleware/auth";
 import prisma from "../db";
 
 // Generische CRUD-Route für Stammdaten-Tabellen
@@ -18,16 +18,31 @@ type ModelName =
 
 interface StammdatenConfig {
   model: ModelName;
+  modul: string; // Rechte-Modul (z.B. "werk", "tu")
   includes?: Record<string, boolean | object>;
   searchFields?: string[];
+  /** Feld für NL-Filter, z.B. "niederlassungId" */
+  nlFilterField?: string;
+  /** NL-Filter über Relation, z.B. { transportUnternehmer: { niederlassungId: X } } */
+  nlFilterRelation?: string;
 }
 
 function createStammdatenRouter(config: StammdatenConfig): Router {
   const router = Router();
-  const { model, includes, searchFields } = config;
+  const { model, modul, includes, searchFields, nlFilterField, nlFilterRelation } = config;
 
-  // GET /api/{model} — Liste
-  router.get("/", requireAuth, async (req: Request, res: Response) => {
+  // NL-Filter in where-Clause einbauen
+  function addNlFilter(where: any, niederlassungId: string | null) {
+    if (!niederlassungId) return;
+    if (nlFilterField) {
+      where[nlFilterField] = niederlassungId;
+    } else if (nlFilterRelation) {
+      where[nlFilterRelation] = { niederlassungId };
+    }
+  }
+
+  // GET /api/{model} — Liste (braucht modul.lesen)
+  router.get("/", requireAuth, requireRecht(modul, "lesen"), async (req: Request, res: Response) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
@@ -35,6 +50,7 @@ function createStammdatenRouter(config: StammdatenConfig): Router {
       const suche = req.query.suche as string;
 
       const where: any = { geloeschtAm: null };
+      addNlFilter(where, req.session.niederlassungId ?? null);
 
       // Textsuche über konfigurierte Felder
       if (suche && searchFields) {
@@ -65,7 +81,7 @@ function createStammdatenRouter(config: StammdatenConfig): Router {
   });
 
   // GET /api/{model}/:id — Einzeln
-  router.get("/:id", requireAuth, async (req: Request, res: Response) => {
+  router.get("/:id", requireAuth, requireRecht(modul, "lesen"), async (req: Request, res: Response) => {
     try {
       const eintrag = await (prisma as any)[model].findUnique({
         where: { id: req.params.id },
@@ -83,8 +99,8 @@ function createStammdatenRouter(config: StammdatenConfig): Router {
     }
   });
 
-  // POST /api/{model} — Neu anlegen
-  router.post("/", requireAuth, async (req: Request, res: Response) => {
+  // POST /api/{model} — Neu anlegen (braucht modul.erstellen)
+  router.post("/", requireAuth, requireRecht(modul, "erstellen"), async (req: Request, res: Response) => {
     try {
       const eintrag = await (prisma as any)[model].create({
         data: req.body,
@@ -104,8 +120,8 @@ function createStammdatenRouter(config: StammdatenConfig): Router {
     }
   });
 
-  // PUT /api/{model}/:id — Bearbeiten
-  router.put("/:id", requireAuth, async (req: Request, res: Response) => {
+  // PUT /api/{model}/:id — Bearbeiten (braucht modul.bearbeiten)
+  router.put("/:id", requireAuth, requireRecht(modul, "bearbeiten"), async (req: Request, res: Response) => {
     try {
       const eintrag = await (prisma as any)[model].update({
         where: { id: req.params.id },
@@ -123,8 +139,8 @@ function createStammdatenRouter(config: StammdatenConfig): Router {
     }
   });
 
-  // DELETE /api/{model}/:id — Soft Delete
-  router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
+  // DELETE /api/{model}/:id — Soft Delete (braucht modul.loeschen)
+  router.delete("/:id", requireAuth, requireRecht(modul, "loeschen"), async (req: Request, res: Response) => {
     try {
       await (prisma as any)[model].update({
         where: { id: req.params.id },
@@ -145,53 +161,68 @@ function createStammdatenRouter(config: StammdatenConfig): Router {
 }
 
 // Alle Stammdaten-Router exportieren
+// Globale Daten (kein NL-Filter): niederlassung, oem, werk, lieferant, abladestelle, route
+// NL-gefiltert: tu, kfz, kondition
+
 export const niederlassungRouter = createStammdatenRouter({
   model: "niederlassung",
+  modul: "niederlassung",
   searchFields: ["name", "kurzbezeichnung", "ort"],
 });
 
 export const oemRouter = createStammdatenRouter({
   model: "oem",
+  modul: "oem",
   searchFields: ["name", "kurzbezeichnung"],
 });
 
 export const werkRouter = createStammdatenRouter({
   model: "werk",
+  modul: "werk",
   includes: { oem: true },
   searchFields: ["name", "werkscode", "ort"],
 });
 
 export const lieferantRouter = createStammdatenRouter({
   model: "lieferant",
+  modul: "lieferant",
   searchFields: ["name", "lieferantennummer", "ort"],
 });
 
 export const abladestelleRouter = createStammdatenRouter({
   model: "abladestelle",
+  modul: "abladestelle",
   includes: { werk: { include: { oem: true } } },
   searchFields: ["name", "entladeZone"],
 });
 
 export const transportUnternehmerRouter = createStammdatenRouter({
   model: "transportUnternehmer",
+  modul: "tu",
   includes: { niederlassung: true },
   searchFields: ["name", "kurzbezeichnung", "ort"],
+  nlFilterField: "niederlassungId",
 });
 
 export const kfzRouter = createStammdatenRouter({
   model: "kfz",
+  modul: "kfz",
   includes: { transportUnternehmer: true },
   searchFields: ["kennzeichen", "fabrikat"],
+  nlFilterRelation: "transportUnternehmer",
 });
 
 export const routeRouter = createStammdatenRouter({
   model: "route",
+  modul: "route",
   includes: { oem: true },
   searchFields: ["routennummer", "beschreibung"],
 });
 
 export const konditionRouter = createStammdatenRouter({
   model: "kondition",
+  modul: "kondition",
   includes: { transportUnternehmer: true, route: true },
   searchFields: ["name"],
+  nlFilterRelation: "transportUnternehmer",
 });

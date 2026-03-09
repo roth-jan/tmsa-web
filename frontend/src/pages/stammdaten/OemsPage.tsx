@@ -5,6 +5,7 @@ export function OemsPage() {
     <StammdatenPage
       titel="OEMs"
       apiEndpoint="/oems"
+      modul="oem"
       columns={[
         { field: "name", headerName: "Name", flex: 1 },
         { field: "kurzbezeichnung", headerName: "Kürzel", width: 120 },

@@ -136,10 +136,27 @@ async function seed() {
     });
   }
 
-  // 12. Rolle Disponent (Lesen + Kern-Module)
+  // 12. Rolle Disponent (Lesen auf Stammdaten + Vollzugriff auf Kern-Module)
   const dispoRolle = await prisma.rolle.create({
     data: { name: "Disponent", beschreibung: "Disposition und operative Module" },
   });
+
+  // Disponent: Leserecht auf alle Stammdaten
+  const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition"];
+  const kernModule = ["avis", "mengenplan", "abfahrt", "nacharbeit"];
+  const alleDispoRechte = await prisma.recht.findMany({
+    where: {
+      OR: [
+        { modul: { in: stammdatenModule }, aktion: "lesen" },
+        { modul: { in: kernModule } },
+      ],
+    },
+  });
+  for (const recht of alleDispoRechte) {
+    await prisma.rolleRecht.create({
+      data: { rolleId: dispoRolle.id, rechtId: recht.id },
+    });
+  }
 
   // 13. Admin-Benutzer
   const passwortHash = await bcrypt.hash("admin", 10);

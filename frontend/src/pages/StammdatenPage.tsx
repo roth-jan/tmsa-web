@@ -15,6 +15,7 @@ import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from "ag-grid-community";
 import { api } from "../api/client";
+import { useAuth } from "../hooks/useAuth";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -32,6 +33,8 @@ export interface FormField {
 interface StammdatenPageProps {
   titel: string;
   apiEndpoint: string;
+  /** Rechte-Modul, z.B. "werk", "tu" — steuert Sichtbarkeit der Buttons */
+  modul: string;
   columns: ColDef[];
   formFields: FormField[];
 }
@@ -39,9 +42,14 @@ interface StammdatenPageProps {
 export function StammdatenPage({
   titel,
   apiEndpoint,
+  modul,
   columns,
   formFields,
 }: StammdatenPageProps) {
+  const { hatRecht } = useAuth();
+  const darfErstellen = hatRecht(modul, "erstellen");
+  const darfBearbeiten = hatRecht(modul, "bearbeiten");
+  const darfLoeschen = hatRecht(modul, "loeschen");
   const [daten, setDaten] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [suche, setSuche] = useState("");
@@ -191,15 +199,19 @@ export function StammdatenPage({
             onChange={(e) => setSuche(e.target.value)}
             style={{ width: 250 }}
           />
-          <Button onClick={neuAnlegen}>Neu anlegen</Button>
+          {darfErstellen && <Button onClick={neuAnlegen}>Neu anlegen</Button>}
           {selectedRow && (
             <>
-              <Button variant="light" onClick={() => bearbeiten(selectedRow)}>
-                Bearbeiten
-              </Button>
-              <Button variant="light" color="red" onClick={() => loeschen(selectedRow.id)}>
-                Löschen
-              </Button>
+              {darfBearbeiten && (
+                <Button variant="light" onClick={() => bearbeiten(selectedRow)}>
+                  Bearbeiten
+                </Button>
+              )}
+              {darfLoeschen && (
+                <Button variant="light" color="red" onClick={() => loeschen(selectedRow.id)}>
+                  Löschen
+                </Button>
+              )}
             </>
           )}
         </Group>
@@ -218,7 +230,7 @@ export function StammdatenPage({
           }}
           rowSelection="single"
           onRowSelected={(e) => setSelectedRow(e.node.isSelected() ? e.data : null)}
-          onRowDoubleClicked={(e) => bearbeiten(e.data)}
+          onRowDoubleClicked={(e) => darfBearbeiten && bearbeiten(e.data)}
           pagination={true}
           paginationPageSize={50}
         />

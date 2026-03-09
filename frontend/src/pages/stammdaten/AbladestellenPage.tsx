@@ -5,6 +5,7 @@ export function AbladestellenPage() {
     <StammdatenPage
       titel="Abladestellen"
       apiEndpoint="/abladestellen"
+      modul="abladestelle"
       columns={[
         { field: "name", headerName: "Name", flex: 1 },
         { field: "werk.name", headerName: "Werk", width: 200 },

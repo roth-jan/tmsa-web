@@ -6,20 +6,20 @@ import { useAuth } from "../hooks/useAuth";
 const navItems = [
   { label: "Dashboard", path: "/" },
   { group: "Stammdaten", items: [
-    { label: "Niederlassungen", path: "/niederlassungen" },
-    { label: "OEMs", path: "/oems" },
-    { label: "Werke", path: "/werke" },
-    { label: "Lieferanten", path: "/lieferanten" },
-    { label: "Abladestellen", path: "/abladestellen" },
-    { label: "Transport-Unternehmer", path: "/transport-unternehmer" },
-    { label: "Fahrzeuge (KFZ)", path: "/kfz" },
-    { label: "Routen", path: "/routen" },
-    { label: "Konditionen", path: "/konditionen" },
+    { label: "Niederlassungen", path: "/niederlassungen", modul: "niederlassung" },
+    { label: "OEMs", path: "/oems", modul: "oem" },
+    { label: "Werke", path: "/werke", modul: "werk" },
+    { label: "Lieferanten", path: "/lieferanten", modul: "lieferant" },
+    { label: "Abladestellen", path: "/abladestellen", modul: "abladestelle" },
+    { label: "Transport-Unternehmer", path: "/transport-unternehmer", modul: "tu" },
+    { label: "Fahrzeuge (KFZ)", path: "/kfz", modul: "kfz" },
+    { label: "Routen", path: "/routen", modul: "route" },
+    { label: "Konditionen", path: "/konditionen", modul: "kondition" },
   ]},
 ];
 
 export function AppLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, hatRecht } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [opened, { toggle }] = useDisclosure();
@@ -52,7 +52,9 @@ export function AppLayout() {
           if ("group" in item) {
             return (
               <NavLink key={i} label={item.group} defaultOpened>
-                {item.items.map((sub) => (
+                {item.items
+                  .filter((sub) => !sub.modul || hatRecht(sub.modul, "lesen"))
+                  .map((sub) => (
                   <NavLink
                     key={sub.path}
                     label={sub.label}

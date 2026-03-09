@@ -5,6 +5,7 @@ export function RoutenPage() {
     <StammdatenPage
       titel="Routen"
       apiEndpoint="/routen"
+      modul="route"
       columns={[
         { field: "routennummer", headerName: "Routennr.", width: 140 },
         { field: "oem.name", headerName: "OEM", width: 120 },

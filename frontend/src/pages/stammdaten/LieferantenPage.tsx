@@ -5,6 +5,7 @@ export function LieferantenPage() {
     <StammdatenPage
       titel="Lieferanten"
       apiEndpoint="/lieferanten"
+      modul="lieferant"
       columns={[
         { field: "name", headerName: "Name", flex: 1 },
         { field: "lieferantennummer", headerName: "LF-Nr.", width: 120 },

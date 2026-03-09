@@ -5,6 +5,7 @@ export function KfzPage() {
     <StammdatenPage
       titel="Fahrzeuge (KFZ)"
       apiEndpoint="/kfz"
+      modul="kfz"
       columns={[
         { field: "kennzeichen", headerName: "Kennzeichen", width: 140 },
         { field: "transportUnternehmer.name", headerName: "TU", flex: 1 },

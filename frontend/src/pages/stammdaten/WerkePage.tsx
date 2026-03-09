@@ -5,6 +5,7 @@ export function WerkePage() {
     <StammdatenPage
       titel="Werke"
       apiEndpoint="/werke"
+      modul="werk"
       columns={[
         { field: "name", headerName: "Name", flex: 1 },
         { field: "werkscode", headerName: "Werkscode", width: 120 },

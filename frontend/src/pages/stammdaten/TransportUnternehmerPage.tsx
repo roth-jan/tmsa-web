@@ -5,6 +5,7 @@ export function TransportUnternehmerPage() {
     <StammdatenPage
       titel="Transport-Unternehmer"
       apiEndpoint="/transport-unternehmer"
+      modul="tu"
       columns={[
         { field: "name", headerName: "Name", flex: 1 },
         { field: "kurzbezeichnung", headerName: "Kürzel", width: 120 },

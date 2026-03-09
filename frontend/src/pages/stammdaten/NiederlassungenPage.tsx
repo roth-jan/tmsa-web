@@ -5,6 +5,7 @@ export function NiederlassungenPage() {
     <StammdatenPage
       titel="Niederlassungen"
       apiEndpoint="/niederlassungen"
+      modul="niederlassung"
       columns={[
         { field: "name", headerName: "Name", flex: 1 },
         { field: "kurzbezeichnung", headerName: "Kürzel", width: 120 },
