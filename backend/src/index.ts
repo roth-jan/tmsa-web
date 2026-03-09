@@ -5,6 +5,7 @@ import helmet from "helmet";
 import session from "express-session";
 
 import authRouter from "./routes/auth";
+import benutzerRouter from "./routes/benutzer";
 import {
   niederlassungRouter,
   oemRouter,
@@ -40,6 +41,7 @@ app.use(session({
 
 // Routes
 app.use("/api/auth", authRouter);
+app.use("/api/benutzer", benutzerRouter);
 app.use("/api/niederlassungen", niederlassungRouter);
 app.use("/api/oems", oemRouter);
 app.use("/api/werke", werkRouter);

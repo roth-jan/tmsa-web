@@ -113,6 +113,7 @@ async function seed() {
     "niederlassung", "oem", "werk", "lieferant", "abladestelle",
     "tu", "kfz", "route", "kondition",
     "avis", "mengenplan", "abfahrt", "nacharbeit", "tuabrechnung",
+    "benutzer",
   ];
   const aktionen = ["lesen", "erstellen", "bearbeiten", "loeschen"];
 

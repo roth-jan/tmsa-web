@@ -6,6 +6,7 @@ import { useAuth } from "./hooks/useAuth";
 import { AppLayout } from "./components/AppLayout";
 import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { BenutzerPage } from "./pages/BenutzerPage";
 import {
   NiederlassungenPage,
   OemsPage,
@@ -42,6 +43,7 @@ function AppRoutes() {
         <Route path="/kfz" element={<KfzPage />} />
         <Route path="/routen" element={<RoutenPage />} />
         <Route path="/konditionen" element={<KonditionenPage />} />
+        <Route path="/benutzer" element={<BenutzerPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
     </Routes>

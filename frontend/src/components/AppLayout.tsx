@@ -16,6 +16,9 @@ const navItems = [
     { label: "Routen", path: "/routen", modul: "route" },
     { label: "Konditionen", path: "/konditionen", modul: "kondition" },
   ]},
+  { group: "Administration", items: [
+    { label: "Benutzer", path: "/benutzer", modul: "benutzer" },
+  ]},
 ];
 
 export function AppLayout() {
