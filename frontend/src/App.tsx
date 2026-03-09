@@ -27,6 +27,7 @@ import { NacharbeitPage } from "./pages/NacharbeitPage";
 import { AbfahrtPage } from "./pages/AbfahrtPage";
 import { SendungsbildungPage } from "./pages/SendungsbildungPage";
 import { TuAbrechnungPage } from "./pages/TuAbrechnungPage";
+import { BerichtePage } from "./pages/BerichtePage";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -61,6 +62,7 @@ function AppRoutes() {
         <Route path="/nacharbeit" element={<NacharbeitPage />} />
         <Route path="/sendungsbildung" element={<SendungsbildungPage />} />
         <Route path="/tu-abrechnung" element={<TuAbrechnungPage />} />
+        <Route path="/berichte" element={<BerichtePage />} />
         <Route path="/benutzer" element={<BenutzerPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>

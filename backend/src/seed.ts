@@ -276,6 +276,7 @@ async function seed() {
     "tu", "kfz", "route", "kondition",
     "dispoort", "disporegel",
     "avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung", "tuabrechnung",
+    "berichte",
     "benutzer",
   ];
   const aktionen = ["lesen", "erstellen", "bearbeiten", "loeschen"];
@@ -306,7 +307,7 @@ async function seed() {
   });
 
   // Disponent: Leserecht auf alle Stammdaten
-  const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition", "dispoort", "disporegel"];
+  const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition", "dispoort", "disporegel", "berichte"];
   const kernModule = ["avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung"];
   const alleDispoRechte = await prisma.recht.findMany({
     where: {

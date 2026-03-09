@@ -31,6 +31,9 @@ const navItems = [
   { group: "Abrechnung", items: [
     { label: "TU-Abrechnung", path: "/tu-abrechnung", modul: "tuabrechnung" },
   ]},
+  { group: "Berichte", items: [
+    { label: "Berichte", path: "/berichte", modul: "berichte" },
+  ]},
   { group: "Administration", items: [
     { label: "Benutzer", path: "/benutzer", modul: "benutzer" },
   ]},

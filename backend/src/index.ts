@@ -13,6 +13,7 @@ import nacharbeitRouter from "./routes/nacharbeit";
 import abfahrtRouter from "./routes/abfahrt";
 import sendungRouter from "./routes/sendung";
 import tuabrechnungRouter from "./routes/tuabrechnung";
+import berichteRouter from "./routes/berichte";
 import {
   niederlassungRouter,
   oemRouter,
@@ -35,6 +36,7 @@ app.use(helmet());
 app.use(cors({
   origin: "http://localhost:5173",
   credentials: true,
+  exposedHeaders: ["Content-Disposition"],
 }));
 app.use(express.json());
 app.use(session({
@@ -69,6 +71,7 @@ app.use("/api/nacharbeit", nacharbeitRouter);
 app.use("/api/abfahrten", abfahrtRouter);
 app.use("/api/sendungen", sendungRouter);
 app.use("/api/tu-abrechnung", tuabrechnungRouter);
+app.use("/api/berichte", berichteRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {
