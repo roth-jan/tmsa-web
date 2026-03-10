@@ -310,7 +310,29 @@ function ImportTab() {
         </Group>
       </Paper>
 
-      {vorschau && vorschau.avise?.length > 0 && (
+      {vorschau && vorschau.format === "IFTSTA" && vorschau.statusUpdates?.length > 0 && (
+        <Paper p="md" withBorder>
+          <Text fw={600} mb="xs">Erkannte Status-Updates ({vorschau.statusUpdates.length}):</Text>
+          {vorschau.warnings?.length > 0 && (
+            <Alert color="yellow" mb="sm">{vorschau.warnings.join(", ")}</Alert>
+          )}
+          {vorschau.statusUpdates.map((u: any, i: number) => (
+            <Paper key={i} p="sm" withBorder mb="xs">
+              <Group>
+                <Text size="sm"><b>Referenz:</b> {u.referenz}</Text>
+                <Badge color={
+                  u.statusCode === "5" ? "green" : u.statusCode === "7" ? "red" :
+                  u.statusCode === "3" ? "teal" : u.statusCode === "2" ? "blue" : "orange"
+                }>{u.statusText}</Badge>
+                {u.zeitpunkt && <Text size="sm"><b>Zeit:</b> {new Date(u.zeitpunkt).toLocaleString("de-DE")}</Text>}
+                {u.ort && <Text size="sm"><b>Ort:</b> {u.ort}</Text>}
+              </Group>
+            </Paper>
+          ))}
+        </Paper>
+      )}
+
+      {vorschau && vorschau.format !== "IFTSTA" && vorschau.avise?.length > 0 && (
         <Paper p="md" withBorder>
           <Text fw={600} mb="xs">Erkannte Avise ({vorschau.avise.length}):</Text>
           {vorschau.warnings?.length > 0 && (
@@ -332,6 +354,9 @@ function ImportTab() {
       {importResult && (
         <Alert color={importResult.status === "success" ? "green" : importResult.status === "partial" ? "yellow" : "red"}>
           <Text fw={600}>Import {importResult.status === "success" ? "erfolgreich" : importResult.status === "partial" ? "teilweise erfolgreich" : "fehlgeschlagen"}</Text>
+          {importResult.format === "IFTSTA" && importResult.updatedCount != null && (
+            <Text size="sm">{importResult.updatedCount} Tour(en) aktualisiert</Text>
+          )}
           {importResult.createdAvisIds?.length > 0 && (
             <Text size="sm">{importResult.createdAvisIds.length} Avis(e) erstellt</Text>
           )}

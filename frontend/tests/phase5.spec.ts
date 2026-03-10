@@ -48,7 +48,7 @@ test.describe("Berichte — Tabs", () => {
   });
 
   test("Seite laden — 6 Tabs sichtbar", async ({ page }) => {
-    await expect(page.getByRole("tab", { name: "Touren" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Touren", exact: true })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Avise" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "TU-Kosten" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Abfahrten" })).toBeVisible();

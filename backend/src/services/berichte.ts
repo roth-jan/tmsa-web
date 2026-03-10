@@ -291,6 +291,142 @@ export async function berichtKonditionsuebersicht(
   });
 }
 
+// 11. OEM Mengen (Avise + Artikelzeilen gruppiert nach OEM via Avis→Werk→OEM)
+export async function berichtOemMengen(
+  filter: DateFilter & { oemId?: string },
+  nlId?: string
+) {
+  const where: any = {
+    geloeschtAm: null,
+    ...datumWhere("ladeDatum", filter),
+  };
+  if (nlId) where.niederlassungId = nlId;
+  if (filter.oemId) where.werk = { oemId: filter.oemId };
+
+  const avise = await prisma.avis.findMany({
+    where,
+    include: {
+      werk: { select: { oemId: true, oem: { select: { name: true, kurzbezeichnung: true } } } },
+      artikelzeilen: { select: { menge: true, gewicht: true } },
+    },
+  });
+
+  const grouped = new Map<string, {
+    oemName: string; oemKurz: string; anzahlAvise: number;
+    anzahlZeilen: number; summeMenge: number; summeGewicht: number;
+  }>();
+
+  for (const a of avise) {
+    const oemId = a.werk.oemId;
+    const entry = grouped.get(oemId) || {
+      oemName: a.werk.oem.name,
+      oemKurz: a.werk.oem.kurzbezeichnung,
+      anzahlAvise: 0, anzahlZeilen: 0, summeMenge: 0, summeGewicht: 0,
+    };
+    entry.anzahlAvise++;
+    entry.anzahlZeilen += a.artikelzeilen.length;
+    for (const z of a.artikelzeilen) {
+      entry.summeMenge += Number(z.menge || 0);
+      entry.summeGewicht += Number(z.gewicht || 0);
+    }
+    grouped.set(oemId, entry);
+  }
+
+  return Array.from(grouped.values()).map((e) => ({
+    ...e,
+    summeMenge: Math.round(e.summeMenge * 100) / 100,
+    summeGewicht: Math.round(e.summeGewicht * 100) / 100,
+  }));
+}
+
+// 12. OEM Kosten (Touren gruppiert nach OEM via Tour→Route→OEM)
+export async function berichtOemKosten(
+  filter: DateFilter & { oemId?: string },
+  nlId?: string
+) {
+  const where: any = {
+    geloeschtAm: null,
+    kostenKondition: { not: null },
+    route: { isNot: null },
+    ...datumWhere("tourDatum", filter),
+  };
+  if (nlId) where.niederlassungId = nlId;
+  if (filter.oemId) where.route = { ...where.route, oemId: filter.oemId };
+
+  const touren = await prisma.tour.findMany({
+    where,
+    include: {
+      route: { select: { oemId: true, oem: { select: { name: true, kurzbezeichnung: true } } } },
+    },
+  });
+
+  const grouped = new Map<string, {
+    oemName: string; oemKurz: string; anzahlTouren: number; summeKosten: number;
+  }>();
+
+  for (const t of touren) {
+    if (!t.route) continue;
+    const oemId = t.route.oemId;
+    const entry = grouped.get(oemId) || {
+      oemName: t.route.oem.name,
+      oemKurz: t.route.oem.kurzbezeichnung,
+      anzahlTouren: 0, summeKosten: 0,
+    };
+    entry.anzahlTouren++;
+    entry.summeKosten += Number(t.kostenKondition || 0);
+    grouped.set(oemId, entry);
+  }
+
+  return Array.from(grouped.values()).map((e) => ({
+    ...e,
+    summeKosten: Math.round(e.summeKosten * 100) / 100,
+    durchschnittKosten: e.anzahlTouren > 0 ? Math.round((e.summeKosten / e.anzahlTouren) * 100) / 100 : 0,
+  }));
+}
+
+// 13. OEM Touren (Tour-Counts + Status-Verteilung nach OEM)
+export async function berichtOemTouren(
+  filter: DateFilter & { oemId?: string },
+  nlId?: string
+) {
+  const where: any = {
+    geloeschtAm: null,
+    route: { isNot: null },
+    ...datumWhere("tourDatum", filter),
+  };
+  if (nlId) where.niederlassungId = nlId;
+  if (filter.oemId) where.route = { ...where.route, oemId: filter.oemId };
+
+  const touren = await prisma.tour.findMany({
+    where,
+    include: {
+      route: { select: { oemId: true, oem: { select: { name: true, kurzbezeichnung: true } } } },
+    },
+  });
+
+  const grouped = new Map<string, {
+    oemName: string; oemKurz: string;
+    gesamt: number; offen: number; disponiert: number; abgefahren: number; abgeschlossen: number;
+  }>();
+
+  for (const t of touren) {
+    if (!t.route) continue;
+    const oemId = t.route.oemId;
+    const entry = grouped.get(oemId) || {
+      oemName: t.route.oem.name, oemKurz: t.route.oem.kurzbezeichnung,
+      gesamt: 0, offen: 0, disponiert: 0, abgefahren: 0, abgeschlossen: 0,
+    };
+    entry.gesamt++;
+    if (t.status === "offen") entry.offen++;
+    else if (t.status === "disponiert") entry.disponiert++;
+    else if (t.status === "abgefahren") entry.abgefahren++;
+    else if (t.status === "abgeschlossen") entry.abgeschlossen++;
+    grouped.set(oemId, entry);
+  }
+
+  return Array.from(grouped.values());
+}
+
 // 6. Abrechnungsjournal
 export async function berichtAbrechnungen(
   filter: { buchungsjahr?: number; tuId?: string; status?: string },

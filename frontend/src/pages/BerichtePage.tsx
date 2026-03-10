@@ -218,6 +218,33 @@ const fahrzeugCols: ColDef[] = [
   { field: "durchschnittKosten", headerName: "Ø Kosten", width: 120, valueFormatter: (p: any) => EUR(p.value) },
 ];
 
+const oemMengenCols: ColDef[] = [
+  { field: "oemName", headerName: "OEM", width: 180 },
+  { field: "oemKurz", headerName: "Kürzel", width: 90 },
+  { field: "anzahlAvise", headerName: "Avise", width: 90, type: "numericColumn" },
+  { field: "anzahlZeilen", headerName: "Zeilen", width: 90, type: "numericColumn" },
+  { field: "summeMenge", headerName: "Menge (ges.)", width: 120, type: "numericColumn" },
+  { field: "summeGewicht", headerName: "Gewicht (kg)", width: 120, type: "numericColumn" },
+];
+
+const oemKostenCols: ColDef[] = [
+  { field: "oemName", headerName: "OEM", width: 180 },
+  { field: "oemKurz", headerName: "Kürzel", width: 90 },
+  { field: "anzahlTouren", headerName: "Touren", width: 90, type: "numericColumn" },
+  { field: "summeKosten", headerName: "Summe Kosten", width: 140, valueFormatter: (p: any) => EUR(p.value), cellStyle: { fontWeight: "bold" } },
+  { field: "durchschnittKosten", headerName: "Ø Kosten", width: 140, valueFormatter: (p: any) => EUR(p.value) },
+];
+
+const oemTourenCols: ColDef[] = [
+  { field: "oemName", headerName: "OEM", width: 180 },
+  { field: "oemKurz", headerName: "Kürzel", width: 90 },
+  { field: "gesamt", headerName: "Gesamt", width: 90, type: "numericColumn", cellStyle: { fontWeight: "bold" } },
+  { field: "offen", headerName: "Offen", width: 90, type: "numericColumn" },
+  { field: "disponiert", headerName: "Disponiert", width: 100, type: "numericColumn" },
+  { field: "abgefahren", headerName: "Abgefahren", width: 110, type: "numericColumn" },
+  { field: "abgeschlossen", headerName: "Abgeschlossen", width: 120, type: "numericColumn" },
+];
+
 const konditionCols: ColDef[] = [
   { field: "transportUnternehmer.name", headerName: "TU", width: 180 },
   { field: "route.routennummer", headerName: "Route", width: 110 },
@@ -252,6 +279,9 @@ export function BerichtePage() {
           <Tabs.Tab value="dfue">DFUE</Tabs.Tab>
           <Tabs.Tab value="fahrzeugliste">Fahrzeugliste</Tabs.Tab>
           <Tabs.Tab value="konditionen">Konditionen</Tabs.Tab>
+          <Tabs.Tab value="oem-mengen">OEM Mengen</Tabs.Tab>
+          <Tabs.Tab value="oem-kosten">OEM Kosten</Tabs.Tab>
+          <Tabs.Tab value="oem-touren">OEM Touren</Tabs.Tab>
         </Tabs.List>
 
         <div style={{ paddingTop: "var(--mantine-spacing-md)" }}>
@@ -265,6 +295,9 @@ export function BerichtePage() {
           {activeTab === "dfue" && <BerichtTab endpoint="dfue" columns={dfueCols} />}
           {activeTab === "fahrzeugliste" && <BerichtTab endpoint="fahrzeugliste" columns={fahrzeugCols} />}
           {activeTab === "konditionen" && <BerichtTab endpoint="konditionsuebersicht" columns={konditionCols} datumFeld="none" />}
+          {activeTab === "oem-mengen" && <BerichtTab endpoint="oem-mengen" columns={oemMengenCols} />}
+          {activeTab === "oem-kosten" && <BerichtTab endpoint="oem-kosten" columns={oemKostenCols} />}
+          {activeTab === "oem-touren" && <BerichtTab endpoint="oem-touren" columns={oemTourenCols} />}
         </div>
       </Tabs>
     </Stack>

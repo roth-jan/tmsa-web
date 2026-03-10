@@ -26,6 +26,7 @@ const navItems = [
     { label: "Dispo-Orte", path: "/dispo-orte", modul: "dispoort" },
     { label: "Dispo-Regeln", path: "/dispo-regeln", modul: "disporegel" },
     { label: "EDI Eingang", path: "/edi-simulator", modul: "avis" },
+    { label: "Forecast", path: "/forecast", modul: "forecast" },
   ]},
   { group: "Operativ", items: [
     { label: "Abfahrten", path: "/abfahrten", modul: "abfahrt" },

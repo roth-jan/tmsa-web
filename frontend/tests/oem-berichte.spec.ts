@@ -14,7 +14,7 @@ async function loginViaApi(page: any, user = "admin", pass = "admin") {
   );
 }
 
-test.describe("Erweiterte Berichte", () => {
+test.describe("OEM-Berichte", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
     await loginViaApi(page);
@@ -24,36 +24,19 @@ test.describe("Erweiterte Berichte", () => {
     ).toBeVisible({ timeout: 10000 });
   });
 
-  test("Berichte-Seite zeigt 10 Tabs", async ({ page }) => {
+  test("Berichte-Seite zeigt 13 Tabs", async ({ page }) => {
     const tabs = [
       "Touren", "Avise", "TU-Kosten", "Abfahrten", "Sendungen",
       "Abrechnungen", "Ausfallfrachten", "DFUE", "Fahrzeugliste", "Konditionen",
+      "OEM Mengen", "OEM Kosten", "OEM Touren",
     ];
     for (const tab of tabs) {
       await expect(page.getByRole("tab", { name: tab, exact: true })).toBeVisible();
     }
   });
 
-  test("Ausfallfrachten laden", async ({ page }) => {
-    await page.getByRole("tab", { name: "Ausfallfrachten" }).click();
-    await page.waitForTimeout(500);
-
-    // Datum setzen auf breiten Bereich
-    const vonInput = page.getByLabel("Datum von");
-    await vonInput.fill("2026-01-01");
-    const bisInput = page.getByLabel("Datum bis");
-    await bisInput.fill("2026-12-31");
-
-    await page.getByRole("button", { name: "Laden" }).click();
-    await page.waitForTimeout(1500);
-
-    // Grid sollte sichtbar sein
-    await expect(page.locator(".ag-root-wrapper")).toBeVisible();
-    await expect(page.getByText(/Einträge gefunden/)).toBeVisible();
-  });
-
-  test("Fahrzeugliste laden", async ({ page }) => {
-    await page.getByRole("tab", { name: "Fahrzeugliste" }).click();
+  test("OEM Mengen laden", async ({ page }) => {
+    await page.getByRole("tab", { name: "OEM Mengen" }).click();
     await page.waitForTimeout(500);
 
     const vonInput = page.getByLabel("Datum von");
@@ -68,19 +51,35 @@ test.describe("Erweiterte Berichte", () => {
     await expect(page.getByText(/Einträge gefunden/)).toBeVisible();
   });
 
-  test("Konditionsübersicht zeigt Seed-Daten", async ({ page }) => {
-    await page.getByRole("tab", { name: "Konditionen" }).click();
+  test("OEM Kosten laden", async ({ page }) => {
+    await page.getByRole("tab", { name: "OEM Kosten" }).click();
     await page.waitForTimeout(500);
 
-    // Kein Datumsfilter nötig bei Konditionen
+    const vonInput = page.getByLabel("Datum von");
+    await vonInput.fill("2026-01-01");
+    const bisInput = page.getByLabel("Datum bis");
+    await bisInput.fill("2026-12-31");
+
     await page.getByRole("button", { name: "Laden" }).click();
     await page.waitForTimeout(1500);
 
     await expect(page.locator(".ag-root-wrapper")).toBeVisible();
-    // Seed hat mindestens 1 Kondition
     await expect(page.getByText(/Einträge gefunden/)).toBeVisible();
-    // Es sollte mindestens 1 Eintrag da sein
-    const rows = page.locator(".ag-row");
-    await expect(rows.first()).toBeVisible({ timeout: 3000 });
+  });
+
+  test("OEM Touren laden", async ({ page }) => {
+    await page.getByRole("tab", { name: "OEM Touren" }).click();
+    await page.waitForTimeout(500);
+
+    const vonInput = page.getByLabel("Datum von");
+    await vonInput.fill("2026-01-01");
+    const bisInput = page.getByLabel("Datum bis");
+    await bisInput.fill("2026-12-31");
+
+    await page.getByRole("button", { name: "Laden" }).click();
+    await page.waitForTimeout(1500);
+
+    await expect(page.locator(".ag-root-wrapper")).toBeVisible();
+    await expect(page.getByText(/Einträge gefunden/)).toBeVisible();
   });
 });

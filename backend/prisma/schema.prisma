@@ -85,6 +85,7 @@ model Niederlassung {
   sendungen        Sendung[]
   tuAbrechnungen   TuAbrechnung[]
   umschlagPunkte   UmschlagPunkt[]
+  forecasts        Forecast[]
 }
 
 model Oem {
@@ -100,6 +101,7 @@ model Oem {
   werke            Werk[]
   routen           Route[]
   sendungen        Sendung[]
+  forecasts        Forecast[]
 }
 
 model Werk {
@@ -120,6 +122,7 @@ model Werk {
   dispoOrte     DispoOrt[]
   avise         Avis[]
   sendungen     Sendung[]
+  forecasts     Forecast[]
 }
 
 model Lieferant {
@@ -477,6 +480,39 @@ model Streckenabschnitt {
   geaendertAm             DateTime  @updatedAt
 
   @@unique([tourId, reihenfolge])
+}
+
+// ============================================================
+// FORECAST (Mengenprognose)
+// ============================================================
+
+model Forecast {
+  id              String           @id @default(uuid())
+  bezeichnung     String
+  oemId           String
+  oem             Oem              @relation(fields: [oemId], references: [id])
+  werkId          String
+  werk            Werk             @relation(fields: [werkId], references: [id])
+  gueltigVon      DateTime
+  gueltigBis      DateTime
+  status          String           @default("entwurf") // entwurf, aktiv, abgeschlossen
+  niederlassungId String
+  niederlassung   Niederlassung    @relation(fields: [niederlassungId], references: [id])
+  erstelltAm      DateTime         @default(now())
+  geaendertAm     DateTime         @updatedAt
+  geloeschtAm     DateTime?
+  details         ForecastDetail[]
+}
+
+model ForecastDetail {
+  id             String   @id @default(uuid())
+  forecastId     String
+  forecast       Forecast @relation(fields: [forecastId], references: [id], onDelete: Cascade)
+  kalenderwoche  Int
+  jahr           Int
+  menge          Int
+  gewicht        Int      @default(0)
+  erstelltAm     DateTime @default(now())
 }
 
 // ============================================================

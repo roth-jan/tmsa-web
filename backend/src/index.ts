@@ -20,6 +20,7 @@ import gebrocheneVerkehreRouter from "./routes/gebrochene-verkehre";
 import dashboardRouter from "./routes/dashboard";
 import pdfRouter from "./routes/pdf";
 import ediRouter from "./routes/edi";
+import forecastRouter from "./routes/forecast";
 import {
   niederlassungRouter,
   oemRouter,
@@ -93,6 +94,7 @@ app.use("/api/dashboard", dashboardRouter);
 app.use("/api/pdf", pdfRouter);
 app.use("/api/audit-log", auditRouter);
 app.use("/api/edi", ediRouter);
+app.use("/api/forecast", forecastRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {

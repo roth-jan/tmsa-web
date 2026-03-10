@@ -12,6 +12,9 @@ import {
   berichtDfueUebersicht,
   berichtFahrzeugliste,
   berichtKonditionsuebersicht,
+  berichtOemMengen,
+  berichtOemKosten,
+  berichtOemTouren,
 } from "../services/berichte";
 
 const router = Router();
@@ -261,6 +264,72 @@ router.get("/konditionsuebersicht", requireAuth, requireRecht("berichte", "lesen
     const nlId = req.session.niederlassungId || undefined;
     const data = await berichtKonditionsuebersicht({ tuId, routeId }, nlId);
     if (format === "csv") return sendCsv(res, data, konditionCols, "konditionsuebersicht");
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 11. OEM Mengen
+const oemMengenCols: CsvColumn[] = [
+  { header: "OEM", field: "oemName" },
+  { header: "Kürzel", field: "oemKurz" },
+  { header: "Avise", field: "anzahlAvise" },
+  { header: "Zeilen", field: "anzahlZeilen" },
+  { header: "Menge (ges.)", field: "summeMenge", format: "decimal" },
+  { header: "Gewicht (kg)", field: "summeGewicht", format: "decimal" },
+];
+
+router.get("/oem-mengen", requireAuth, requireRecht("berichte", "lesen"), async (req: Request, res: Response) => {
+  try {
+    const { datumVon, datumBis, oemId, format } = req.query as any;
+    const nlId = req.session.niederlassungId || undefined;
+    const data = await berichtOemMengen({ datumVon, datumBis, oemId }, nlId);
+    if (format === "csv") return sendCsv(res, data, oemMengenCols, "oem-mengen");
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 12. OEM Kosten
+const oemKostenCols: CsvColumn[] = [
+  { header: "OEM", field: "oemName" },
+  { header: "Kürzel", field: "oemKurz" },
+  { header: "Touren", field: "anzahlTouren" },
+  { header: "Summe Kosten", field: "summeKosten", format: "decimal" },
+  { header: "Ø Kosten", field: "durchschnittKosten", format: "decimal" },
+];
+
+router.get("/oem-kosten", requireAuth, requireRecht("berichte", "lesen"), async (req: Request, res: Response) => {
+  try {
+    const { datumVon, datumBis, oemId, format } = req.query as any;
+    const nlId = req.session.niederlassungId || undefined;
+    const data = await berichtOemKosten({ datumVon, datumBis, oemId }, nlId);
+    if (format === "csv") return sendCsv(res, data, oemKostenCols, "oem-kosten");
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 13. OEM Touren
+const oemTourenCols: CsvColumn[] = [
+  { header: "OEM", field: "oemName" },
+  { header: "Kürzel", field: "oemKurz" },
+  { header: "Gesamt", field: "gesamt" },
+  { header: "Offen", field: "offen" },
+  { header: "Disponiert", field: "disponiert" },
+  { header: "Abgefahren", field: "abgefahren" },
+  { header: "Abgeschlossen", field: "abgeschlossen" },
+];
+
+router.get("/oem-touren", requireAuth, requireRecht("berichte", "lesen"), async (req: Request, res: Response) => {
+  try {
+    const { datumVon, datumBis, oemId, format } = req.query as any;
+    const nlId = req.session.niederlassungId || undefined;
+    const data = await berichtOemTouren({ datumVon, datumBis, oemId }, nlId);
+    if (format === "csv") return sendCsv(res, data, oemTourenCols, "oem-touren");
     return res.json({ data });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });

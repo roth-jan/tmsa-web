@@ -24,6 +24,21 @@ export interface ParsedEdiResult {
   warnings: string[];
 }
 
+export interface ParsedStatusUpdate {
+  referenz: string;       // Tour-Nummer
+  referenzTyp: string;    // "tour"
+  statusCode: string;     // 1,2,3,5,7
+  statusText: string;     // Abgeholt, Unterwegs, Angekommen, Zugestellt, Ausnahme
+  zeitpunkt: string;      // ISO date
+  ort: string;            // Location code
+}
+
+export interface ParsedIFTSTAResult {
+  format: "IFTSTA";
+  statusUpdates: ParsedStatusUpdate[];
+  warnings: string[];
+}
+
 // ── Format-Erkennung ────────────────────────────────────────
 export function detectFormat(content: string): string {
   const trimmed = content.trim();
@@ -32,6 +47,7 @@ export function detectFormat(content: string): string {
   if (trimmed.startsWith("UNA") || trimmed.startsWith("UNB")) {
     // Suche nach Message-Type im UNH-Segment
     if (trimmed.includes("DESADV")) return "DESADV";
+    if (trimmed.includes("IFTSTA")) return "IFTSTA";
     if (trimmed.includes("IFCSUM")) return "IFCSUM";
     return "EDIFACT";
   }
@@ -290,8 +306,99 @@ function parseIfcsum(content: string): ParsedEdiResult {
   };
 }
 
+// ── IFTSTA Parser (Transport Status) ─────────────────────────
+const IFTSTA_STATUS_MAP: Record<string, string> = {
+  "1": "Abgeholt",
+  "2": "Unterwegs",
+  "3": "Angekommen",
+  "5": "Zugestellt",
+  "7": "Ausnahme",
+};
+
+function parseIftsta(content: string): ParsedIFTSTAResult {
+  const segments = splitEdifactSegments(content);
+  const warnings: string[] = [];
+  const statusUpdates: ParsedStatusUpdate[] = [];
+
+  let currentReferenz = "";
+  let currentStatusCode = "";
+  let currentStatusText = "";
+  let currentZeitpunkt = "";
+  let currentOrt = "";
+
+  for (const seg of segments) {
+    const tag = seg.substring(0, 3);
+
+    if (tag === "CNI") {
+      // Flush previous if exists
+      if (currentReferenz && currentStatusCode) {
+        statusUpdates.push({
+          referenz: currentReferenz,
+          referenzTyp: "tour",
+          statusCode: currentStatusCode,
+          statusText: currentStatusText,
+          zeitpunkt: currentZeitpunkt,
+          ort: currentOrt,
+        });
+      }
+      // CNI+1+TOUR-REF → Consignment Info
+      currentReferenz = edifactField(seg, 2) || edifactField(seg, 1);
+      currentStatusCode = "";
+      currentStatusText = "";
+      currentZeitpunkt = "";
+      currentOrt = "";
+    } else if (tag === "STS") {
+      // STS+1+5 → Status Code
+      const code = edifactField(seg, 2) || edifactField(seg, 1, 1) || edifactField(seg, 1);
+      currentStatusCode = code;
+      currentStatusText = IFTSTA_STATUS_MAP[code] || `Status ${code}`;
+    } else if (tag === "RFF") {
+      // RFF+CU:T-2026-001 → Tour-Referenz
+      const qualifier = edifactField(seg, 1, 0);
+      const ref = edifactField(seg, 1, 1);
+      if (qualifier === "CU" && ref) {
+        currentReferenz = ref;
+      }
+    } else if (tag === "DTM") {
+      // DTM+334:202603101400:203 → Status-Zeitpunkt
+      const qualifier = edifactField(seg, 1, 0);
+      const datum = edifactField(seg, 1, 1);
+      if (qualifier === "334" && datum.length >= 8) {
+        const y = datum.substring(0, 4);
+        const m = datum.substring(4, 6);
+        const d = datum.substring(6, 8);
+        const h = datum.length >= 10 ? datum.substring(8, 10) : "00";
+        const min = datum.length >= 12 ? datum.substring(10, 12) : "00";
+        currentZeitpunkt = `${y}-${m}-${d}T${h}:${min}:00`;
+      }
+    } else if (tag === "LOC") {
+      // LOC+5+MUENCHEN → Location
+      const ort = edifactField(seg, 2) || edifactField(seg, 1, 1);
+      if (ort) currentOrt = ort;
+    }
+  }
+
+  // Flush last
+  if (currentReferenz && currentStatusCode) {
+    statusUpdates.push({
+      referenz: currentReferenz,
+      referenzTyp: "tour",
+      statusCode: currentStatusCode,
+      statusText: currentStatusText,
+      zeitpunkt: currentZeitpunkt,
+      ort: currentOrt,
+    });
+  }
+
+  if (statusUpdates.length === 0) {
+    warnings.push("Keine Status-Updates in IFTSTA gefunden");
+  }
+
+  return { format: "IFTSTA", statusUpdates, warnings };
+}
+
 // ── Haupteinstieg ───────────────────────────────────────────
-export function parseEdi(content: string, formatHint?: string): ParsedEdiResult {
+export function parseEdi(content: string, formatHint?: string): ParsedEdiResult | ParsedIFTSTAResult {
   const format = formatHint || detectFormat(content);
 
   switch (format) {
@@ -299,6 +406,7 @@ export function parseEdi(content: string, formatHint?: string): ParsedEdiResult 
     case "VDA4927": return parseVda4927(content);
     case "DESADV": return parseDesadv(content);
     case "IFCSUM": return parseIfcsum(content);
+    case "IFTSTA": return parseIftsta(content);
     default:
       return { format: "UNKNOWN", avise: [], warnings: ["Format nicht erkannt"] };
   }

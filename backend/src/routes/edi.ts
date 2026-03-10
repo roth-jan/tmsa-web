@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { requireAuth, requireRecht } from "../middleware/auth";
 import prisma from "../db";
-import { parseEdi, detectFormat } from "../services/edi-parser";
+import { parseEdi, detectFormat, ParsedIFTSTAResult } from "../services/edi-parser";
 
 const router = Router();
 
@@ -18,18 +18,71 @@ router.post("/parse", requireAuth, requireRecht("edi", "lesen"), async (req: Req
   }
 });
 
-// POST /api/edi/import — Parsen + Avise in DB erstellen
+// POST /api/edi/import — Parsen + Avise/Status in DB erstellen/aktualisieren
 router.post("/import", requireAuth, requireRecht("edi", "erstellen"), async (req: Request, res: Response) => {
   try {
     const { text, formatHint, dateiname } = req.body;
     if (!text) return res.status(400).json({ error: "Kein Text zum Importieren" });
 
     const result = parseEdi(text, formatHint);
+
+    // IFTSTA: Status-Updates statt Avis-Erstellung
+    if (result.format === "IFTSTA") {
+      const iftstaResult = result as ParsedIFTSTAResult;
+      let updatedCount = 0;
+      const errors: string[] = [];
+
+      for (const update of iftstaResult.statusUpdates) {
+        try {
+          const tour = await prisma.tour.findFirst({
+            where: { tourNummer: update.referenz, geloeschtAm: null },
+          });
+          if (!tour) {
+            errors.push(`Tour "${update.referenz}" nicht gefunden`);
+            continue;
+          }
+          // Status-Mapping: 1,2,3 → abgefahren, 5 → abgeschlossen, 7 → keine Änderung
+          let newStatus: string | null = null;
+          if (["1", "2", "3"].includes(update.statusCode)) newStatus = "abgefahren";
+          else if (update.statusCode === "5") newStatus = "abgeschlossen";
+          else {
+            errors.push(`Tour "${update.referenz}": Status ${update.statusCode} (${update.statusText}) nicht automatisch umsetzbar`);
+            continue;
+          }
+          await prisma.tour.update({
+            where: { id: tour.id },
+            data: { status: newStatus },
+          });
+          updatedCount++;
+        } catch (err: any) {
+          errors.push(err.message);
+        }
+      }
+
+      const status = errors.length === 0 ? "success" : updatedCount > 0 ? "partial" : "error";
+      await prisma.ediImport.create({
+        data: {
+          format: "IFTSTA",
+          dateiname: dateiname || null,
+          status,
+          ergebnis: { updatedCount, errors },
+          rohdaten: text.substring(0, 5000),
+          benutzerId: req.session.userId || null,
+          benutzerName: req.session.benutzername || null,
+        },
+      });
+
+      return res.json({
+        data: { format: "IFTSTA", status, updatedCount, errors },
+      });
+    }
+
+    // Standard: Avis-Import
     const createdAvisIds: string[] = [];
     const errors: string[] = [];
     const nlId = req.session.niederlassungId;
 
-    for (const avisData of result.avise) {
+    for (const avisData of (result as any).avise) {
       try {
         // Werk über werkscode finden
         let werkId: string | undefined;

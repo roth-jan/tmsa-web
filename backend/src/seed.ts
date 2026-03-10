@@ -291,6 +291,26 @@ async function seed() {
     ],
   });
 
+  // 14b. Forecast Seed
+  await prisma.forecast.create({
+    data: {
+      bezeichnung: "BMW München Q2 2026",
+      oemId: bmw.id,
+      werkId: werkMuc.id,
+      gueltigVon: new Date("2026-04-01"),
+      gueltigBis: new Date("2026-06-30"),
+      status: "aktiv",
+      niederlassungId: nlGersthofen.id,
+      details: {
+        create: [
+          { kalenderwoche: 14, jahr: 2026, menge: 1200, gewicht: 6000 },
+          { kalenderwoche: 15, jahr: 2026, menge: 1500, gewicht: 7500 },
+          { kalenderwoche: 16, jahr: 2026, menge: 1100, gewicht: 5500 },
+        ],
+      },
+    },
+  });
+
   // 14. Rechte
   const module = [
     "niederlassung", "oem", "werk", "lieferant", "abladestelle",
@@ -300,7 +320,7 @@ async function seed() {
     "berichte",
     "benutzer",
     "umschlagpunkt", "gebrocheneverkehre",
-    "auditlog", "edi",
+    "auditlog", "edi", "forecast",
   ];
   const aktionen = ["lesen", "erstellen", "bearbeiten", "loeschen"];
 
@@ -331,7 +351,7 @@ async function seed() {
 
   // Disponent: Leserecht auf alle Stammdaten
   const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition", "dispoort", "disporegel", "berichte", "umschlagpunkt"];
-  const kernModule = ["avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung", "gebrocheneverkehre"];
+  const kernModule = ["avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung", "gebrocheneverkehre", "forecast"];
   const alleDispoRechte = await prisma.recht.findMany({
     where: {
       OR: [
