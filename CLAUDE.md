@@ -220,10 +220,32 @@ npx playwright test
 - [x] 6 Playwright-Tests
 - [x] **108 Tests gesamt: 105 passed, 2 flaky, 1 skipped**
 
+### OEM-spezifische Berichte ✅
+- [x] 3 neue Berichte: OEM Mengen, OEM Kosten, OEM Touren
+- [x] Backend: Avise/Touren gruppiert nach OEM (via Werk→OEM bzw. Route→OEM)
+- [x] BerichtePage: 13 Tabs (vorher 10), CSV-Export je Bericht
+- [x] 4 Playwright-Tests
+
+### IFTSTA EDI-Format ✅
+- [x] IFTSTA Parser: EDIFACT Segmente CNI/STS/RFF/DTM/LOC
+- [x] Format-Erkennung in detectFormat() erweitert
+- [x] Status-Codes: 1=Abgeholt, 2=Unterwegs, 3=Angekommen, 5=Zugestellt, 7=Ausnahme
+- [x] Import: Tour-Status Update (1/2/3→abgefahren, 5→abgeschlossen)
+- [x] EdiSimulatorPage: IFTSTA-Vorschau mit farbigen Status-Badges
+- [x] 4 Playwright-Tests
+
+### Forecast (Mengenprognose) ✅
+- [x] Forecast + ForecastDetail Prisma Models + Migration
+- [x] CRUD-Route: GET/POST/PUT/DELETE /api/forecast + GET /api/forecast/:id/vergleich
+- [x] Ist-vs-Soll-Vergleich: KW-weise Forecast vs. tatsächliche Avis-Mengen
+- [x] ForecastPage: 2 Tabs (Forecasts-Liste + Ist vs Soll)
+- [x] Navigation: Forecast in Disposition-Gruppe, Modul forecast
+- [x] Seed: BMW München Q2 2026 (KW 14-16)
+- [x] 4 Playwright-Tests
+- [x] **120 Tests gesamt: 118 passed, 2 flaky (pre-existing)**
+
 ### Offen / Next Steps
-- [ ] IFTSTA EDI-Format
-- [ ] Forecast
-- [ ] OEM-spezifische Berichte
+- Alle geplanten Features implementiert
 
 ---
 
