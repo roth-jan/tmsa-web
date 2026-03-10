@@ -167,6 +167,16 @@ npx playwright test
 - [x] VDA 4913 Nachrichtenformat (511/512/513/514/519 Satzarten)
 - [x] Import → bestehender POST /api/avise (kein neuer Backend-Endpoint)
 - [x] 4 Playwright-Tests, **79/79 gesamt grün**
+
+### PDF-Druck ✅
+- [x] pdfkit-basierte PDF-Generierung (lightweight, kein Headless-Browser)
+- [x] Bordero/Lademanifest PDF (Sendungen-Tabelle, Gewicht/LDM-Summen, Unterschriftsfelder)
+- [x] TU-Abrechnung PDF (Positionen-Breakdown, Gesamtbetrag, Zahlungsbedingungen)
+- [x] GET /api/pdf/bordero/:id + GET /api/pdf/tu-abrechnung/:id
+- [x] PDF-Buttons in AbfahrtPage + TuAbrechnungPage (window.open → neuer Tab)
+- [x] 4 Playwright-Tests, **81/81 grün + 2 skipped** (gesamt 83)
+
+### Offen / Next Steps
 - [ ] Weitere EDI (VDA4927, DESADV, IFCSUM, IFTSTA)
 - [ ] Forecast
 - [ ] Erweiterte Berichte (OEM-spezifisch, Ausfallfrachten)
