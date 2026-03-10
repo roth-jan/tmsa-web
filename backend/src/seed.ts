@@ -6,10 +6,10 @@ async function seed() {
 
   // 1. Niederlassungen
   const nlGersthofen = await prisma.niederlassung.create({
-    data: { name: "Gersthofen", kurzbezeichnung: "GER" },
+    data: { name: "Augsburg", kurzbezeichnung: "AUG" },
   });
   const nlMuenchen = await prisma.niederlassung.create({
-    data: { name: "München", kurzbezeichnung: "MUC" },
+    data: { name: "Nürnberg", kurzbezeichnung: "NUE" },
   });
 
   // 2. OEMs
@@ -67,35 +67,35 @@ async function seed() {
 
   // 6. Transport-Unternehmer
   const tuMeyer = await prisma.transportUnternehmer.create({
-    data: { name: "Spedition Meyer", kurzbezeichnung: "MEY", ort: "Augsburg", niederlassungId: nlGersthofen.id },
+    data: { name: "Hartmann Transport GmbH", kurzbezeichnung: "HAR", ort: "Augsburg", niederlassungId: nlGersthofen.id },
   });
   const tuSchmidt = await prisma.transportUnternehmer.create({
-    data: { name: "Schmidt Transport", kurzbezeichnung: "SCH", ort: "München", niederlassungId: nlMuenchen.id },
+    data: { name: "Kraus Spedition", kurzbezeichnung: "KRA", ort: "Nürnberg", niederlassungId: nlMuenchen.id },
   });
 
   // 7. KFZ
   await prisma.kfz.create({
-    data: { kennzeichen: "A-ME-1234", transportUnternehmerId: tuMeyer.id, fabrikat: "MAN TGX", lkwTyp: "Sattelzug", maxLdm: 13.6, maxGewicht: 24000 },
+    data: { kennzeichen: "A-HT-1234", transportUnternehmerId: tuMeyer.id, fabrikat: "MAN TGX", lkwTyp: "Sattelzug", maxLdm: 13.6, maxGewicht: 24000 },
   });
   await prisma.kfz.create({
-    data: { kennzeichen: "A-ME-5678", transportUnternehmerId: tuMeyer.id, fabrikat: "Mercedes Actros", lkwTyp: "Gliederzug", maxLdm: 7.7, maxGewicht: 12000 },
+    data: { kennzeichen: "A-HT-5678", transportUnternehmerId: tuMeyer.id, fabrikat: "Mercedes Actros", lkwTyp: "Gliederzug", maxLdm: 7.7, maxGewicht: 12000 },
   });
   await prisma.kfz.create({
-    data: { kennzeichen: "M-SC-9999", transportUnternehmerId: tuSchmidt.id, fabrikat: "Scania R450", lkwTyp: "Sattelzug", maxLdm: 13.6, maxGewicht: 24000 },
+    data: { kennzeichen: "N-KS-9012", transportUnternehmerId: tuSchmidt.id, fabrikat: "Scania R450", lkwTyp: "Sattelzug", maxLdm: 13.6, maxGewicht: 24000 },
   });
 
   // 8. Routen
   const routeBmw1 = await prisma.route.create({
-    data: { routennummer: "BMW-R001", oemId: bmw.id, beschreibung: "Gersthofen → München", kilometerLast: 85, kilometerLeer: 85, kilometerMaut: 70 },
+    data: { routennummer: "BMW-R001", oemId: bmw.id, beschreibung: "Augsburg → München", kilometerLast: 85, kilometerLeer: 85, kilometerMaut: 70 },
   });
   await prisma.route.create({
-    data: { routennummer: "BMW-R002", oemId: bmw.id, beschreibung: "Gersthofen → Dingolfing", kilometerLast: 165, kilometerLeer: 165, kilometerMaut: 140 },
+    data: { routennummer: "BMW-R002", oemId: bmw.id, beschreibung: "Augsburg → Dingolfing", kilometerLast: 165, kilometerLeer: 165, kilometerMaut: 140 },
   });
 
   // 9. Konditionen
   await prisma.kondition.create({
     data: {
-      name: "Meyer Standard BMW",
+      name: "Hartmann Standard BMW",
       transportUnternehmerId: tuMeyer.id,
       routeId: routeBmw1.id,
       tourFaktor: 150.0,
@@ -110,7 +110,7 @@ async function seed() {
 
   // 10. Dispo-Orte
   await prisma.dispoOrt.create({
-    data: { bezeichnung: "Umschlag Gersthofen", plz: "86368", ort: "Gersthofen", sortierung: 1, niederlassungId: nlGersthofen.id },
+    data: { bezeichnung: "Umschlag Augsburg", plz: "86150", ort: "Augsburg", sortierung: 1, niederlassungId: nlGersthofen.id },
   });
   await prisma.dispoOrt.create({
     data: { bezeichnung: "Werk München Tor Nord", plz: "80788", ort: "München", werkId: werkMuc.id, sortierung: 2, niederlassungId: nlGersthofen.id },
@@ -190,7 +190,7 @@ async function seed() {
     },
   });
 
-  const kfzMeyer1 = await prisma.kfz.findFirst({ where: { kennzeichen: "A-ME-1234" } });
+  const kfzMeyer1 = await prisma.kfz.findFirst({ where: { kennzeichen: "A-HT-1234" } });
 
   const tour2 = await prisma.tour.create({
     data: {
@@ -208,7 +208,7 @@ async function seed() {
   });
 
   // Tour 3: Bewertete Tour (abrechnungsStatus=1) für Phase 4 Tests
-  const kondMeyer = await prisma.kondition.findFirst({ where: { name: "Meyer Standard BMW" } });
+  const kondMeyer = await prisma.kondition.findFirst({ where: { name: "Hartmann Standard BMW" } });
   await prisma.tour.create({
     data: {
       tourNummer: "T-2026-003",
@@ -272,7 +272,7 @@ async function seed() {
 
   // 14a. Umschlagpunkt + Gebrochene Tour
   const uspGersthofen = await prisma.umschlagPunkt.create({
-    data: { name: "USP Gersthofen", kurzbezeichnung: "USP-GER", plz: "86368", ort: "Gersthofen", niederlassungId: nlGersthofen.id },
+    data: { name: "USP Augsburg", kurzbezeichnung: "USP-AUG", plz: "86150", ort: "Augsburg", niederlassungId: nlGersthofen.id },
   });
 
   const tourGV = await prisma.tour.create({
@@ -286,8 +286,8 @@ async function seed() {
   });
   await prisma.streckenabschnitt.createMany({
     data: [
-      { tourId: tourGV.id, reihenfolge: 1, typ: "VL", vonBeschreibung: "Bosch Stuttgart", nachBeschreibung: "USP Gersthofen", umschlagPunktId: uspGersthofen.id },
-      { tourId: tourGV.id, reihenfolge: 2, typ: "NL", vonBeschreibung: "USP Gersthofen", nachBeschreibung: "BMW München", umschlagPunktId: uspGersthofen.id, routeId: routeBmw1.id, transportUnternehmerId: tuMeyer.id },
+      { tourId: tourGV.id, reihenfolge: 1, typ: "VL", vonBeschreibung: "Bosch Stuttgart", nachBeschreibung: "USP Augsburg", umschlagPunktId: uspGersthofen.id },
+      { tourId: tourGV.id, reihenfolge: 2, typ: "NL", vonBeschreibung: "USP Augsburg", nachBeschreibung: "BMW München", umschlagPunktId: uspGersthofen.id, routeId: routeBmw1.id, transportUnternehmerId: tuMeyer.id },
     ],
   });
 
@@ -351,8 +351,8 @@ async function seed() {
     data: {
       benutzername: "admin",
       passwortHash,
-      vorname: "System",
-      nachname: "Administrator",
+      vorname: "Thomas",
+      nachname: "Berger",
       niederlassungId: nlGersthofen.id,
     },
   });
@@ -366,8 +366,8 @@ async function seed() {
     data: {
       benutzername: "dispo",
       passwortHash: dispoHash,
-      vorname: "Max",
-      nachname: "Mustermann",
+      vorname: "Lisa",
+      nachname: "Maier",
       niederlassungId: nlGersthofen.id,
     },
   });
@@ -376,8 +376,8 @@ async function seed() {
   });
 
   console.log("Testdaten erstellt!");
-  console.log("Login: admin / admin (Administrator)");
-  console.log("Login: dispo / dispo (Disponent)");
+  console.log("Login: admin / admin (Thomas Berger, Administrator)");
+  console.log("Login: dispo / dispo (Lisa Maier, Disponent)");
 }
 
 seed()

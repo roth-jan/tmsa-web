@@ -57,7 +57,7 @@ export function AppLayout() {
         <Group h="100%" px="md" justify="space-between">
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            <Title order={3}>TMSA Web</Title>
+            <Title order={3}>TMSA</Title>
           </Group>
           <Group>
             <Text size="sm" c="dimmed">

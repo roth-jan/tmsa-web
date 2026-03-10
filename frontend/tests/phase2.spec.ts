@@ -35,7 +35,7 @@ test.describe("DispoOrte", () => {
 
   test("zeigt Dispo-Orte-Tabelle mit Seed-Daten", async ({ page }) => {
     await expect(page.locator(".ag-row").first()).toBeVisible();
-    await expect(page.getByText("Umschlag Gersthofen")).toBeVisible();
+    await expect(page.getByText("Umschlag Augsburg")).toBeVisible();
   });
 
   test("CRUD: Anlegen + Bearbeiten + Löschen eines DispoOrts", async ({ page }) => {
@@ -45,8 +45,8 @@ test.describe("DispoOrte", () => {
     await page.getByRole("button", { name: "Neu anlegen" }).click();
     await expect(page.getByText("Dispo-Orte anlegen")).toBeVisible();
     await page.getByLabel("Bezeichnung").fill(name);
-    // NL-Dropdown: "Gersthofen" wählen (= Admin-NL, damit es sichtbar bleibt)
-    await selectOption(page, "Niederlassung", "Gersthofen");
+    // NL-Dropdown: "Augsburg" wählen (= Admin-NL, damit es sichtbar bleibt)
+    await selectOption(page, "Niederlassung", "Augsburg");
     await page.getByRole("button", { name: "Speichern" }).click();
 
     await expect(page.getByText(name)).toBeVisible({ timeout: 5000 });
@@ -94,7 +94,7 @@ test.describe("Avise", () => {
     // Dropdowns: Lieferant, Werk, NL mit Suche
     await selectOption(page, "Lieferant", "Bosch");
     await selectOption(page, "Werk", "BMW Werk München");
-    await selectOption(page, "Niederlassung", "Gersthofen");
+    await selectOption(page, "Niederlassung", "Augsburg");
 
     await page.getByRole("button", { name: "Speichern" }).click();
 
@@ -158,7 +158,7 @@ test.describe("Touren", () => {
     await expect(page.getByRole("heading", { name: "Neue Tour" })).toBeVisible();
     await page.getByLabel("Tour-Nummer").fill(tourNr);
     await page.getByLabel("Tour-Datum").fill("2026-03-15");
-    await selectOption(page, "Niederlassung", "Gersthofen");
+    await selectOption(page, "Niederlassung", "Augsburg");
 
     await page.getByRole("button", { name: "Speichern" }).click();
     await expect(page.getByText(tourNr)).toBeVisible({ timeout: 5000 });

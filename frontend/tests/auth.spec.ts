@@ -27,7 +27,7 @@ test.describe("Login", () => {
     await loginViaApi(page, "admin", "admin");
     await page.goto("/");
 
-    await expect(page.getByText("Willkommen, System Administrator")).toBeVisible();
+    await expect(page.getByText("Willkommen, Thomas Berger")).toBeVisible();
     await expect(page.getByText(/· Administrator ·/)).toBeVisible();
   });
 
@@ -36,7 +36,7 @@ test.describe("Login", () => {
     await loginViaApi(page, "dispo", "dispo");
     await page.goto("/");
 
-    await expect(page.getByText("Willkommen, Max Mustermann")).toBeVisible();
+    await expect(page.getByText("Willkommen, Lisa Maier")).toBeVisible();
     await expect(page.getByText("Disponent")).toBeVisible();
   });
 

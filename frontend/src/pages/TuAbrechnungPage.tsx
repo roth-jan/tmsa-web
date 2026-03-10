@@ -371,6 +371,12 @@ function AbrechnungenTab() {
             {selectedAbr.belegnummer} stornieren
           </Button>
         )}
+        {selectedAbr && (
+          <Button variant="outline"
+            onClick={() => window.open(`http://localhost:3001/api/pdf/tu-abrechnung/${selectedAbr.id}`, "_blank")}>
+            PDF
+          </Button>
+        )}
       </Group>
 
       {/* Abrechnungen-Grid */}

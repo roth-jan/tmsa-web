@@ -23,7 +23,7 @@ test.describe("Dashboard KPIs", () => {
     await page.goto("/");
 
     await expect(
-      page.getByText("Willkommen, System Administrator")
+      page.getByText("Willkommen, Thomas Berger")
     ).toBeVisible();
     await expect(page.getByText(/· Administrator ·/)).toBeVisible();
   });
@@ -63,7 +63,7 @@ test.describe("Dashboard KPIs", () => {
     await page.goto("/");
 
     await expect(
-      page.getByText("Willkommen, Max Mustermann")
+      page.getByText("Willkommen, Lisa Maier")
     ).toBeVisible();
     await expect(page.getByText(/· Disponent ·/)).toBeVisible();
     await expect(page.getByText("Offene Zeilen")).toBeVisible({ timeout: 10000 });

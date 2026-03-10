@@ -277,6 +277,12 @@ export function AbfahrtPage() {
           {selectedBordero && darfBearbeiten && (
             <Button size="sm" variant="light" color="red" onClick={() => borderoLoeschen(selectedBordero.id)}>Löschen</Button>
           )}
+          {selectedBordero && (
+            <Button size="sm" variant="outline"
+              onClick={() => window.open(`http://localhost:3001/api/pdf/bordero/${selectedBordero.id}`, "_blank")}>
+              PDF
+            </Button>
+          )}
         </Group>
       </Group>
 

@@ -39,8 +39,8 @@ test.describe("Umschlagpunkte Stammdaten", () => {
     await page.goto("/umschlag-punkte");
     await expect(page.getByRole("heading", { name: "Umschlagpunkte" })).toBeVisible();
     await expect(page.locator(".ag-row").first()).toBeVisible();
-    await expect(page.getByText("USP Gersthofen")).toBeVisible();
-    await expect(page.getByText("USP-GER")).toBeVisible();
+    await expect(page.getByText("USP Augsburg")).toBeVisible();
+    await expect(page.getByText("USP-AUG")).toBeVisible();
   });
 
   test("Admin kann neuen USP anlegen", async ({ page }) => {
@@ -52,7 +52,7 @@ test.describe("Umschlagpunkte Stammdaten", () => {
     await expect(page.getByText("Umschlagpunkte anlegen")).toBeVisible();
     await page.getByLabel("Name").fill(name);
     await page.getByLabel("Kurzbezeichnung").fill("TST");
-    await selectOption(page, "Niederlassung", "Gersthofen");
+    await selectOption(page, "Niederlassung", "Augsburg");
     await page.getByRole("button", { name: "Speichern" }).click();
 
     await expect(page.getByText(name)).toBeVisible({ timeout: 5000 });
@@ -115,7 +115,7 @@ test.describe("Tour brechen", () => {
     // Streckenabschnitte-Anzeige
     await expect(page.getByText("Streckenabschnitte von T-2026-004")).toBeVisible({ timeout: 5000 });
     await expect(page.getByText("Bosch Stuttgart")).toBeVisible();
-    await expect(page.getByText("USP Gersthofen").first()).toBeVisible();
+    await expect(page.getByText("USP Augsburg").first()).toBeVisible();
     await expect(page.getByText("BMW München")).toBeVisible();
   });
 
@@ -131,7 +131,7 @@ test.describe("Tour brechen", () => {
     await expect(page.getByText("Tour brechen", { exact: false })).toBeVisible();
 
     // USP auswählen
-    await selectOption(page, "Umschlagpunkt", "USP Gersthofen");
+    await selectOption(page, "Umschlagpunkt", "USP Augsburg");
     await page.getByLabel("Von (Startpunkt)").fill("Continental Hannover");
     await page.getByLabel("Nach (Zielpunkt)").fill("BMW München");
 

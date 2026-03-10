@@ -51,7 +51,7 @@ test.describe("Kompletter TMSA Durchlauf", () => {
       await page.getByLabel("Ladedatum").fill(tourDatum);
       await selectOption(page, "Lieferant", "Bosch");
       await selectOption(page, "Werk", "BMW Werk München");
-      await selectOption(page, "Niederlassung", "Gersthofen");
+      await selectOption(page, "Niederlassung", "Augsburg");
       await page.getByRole("button", { name: "Speichern" }).click();
 
       await expect(page.getByText(avisNr)).toBeVisible({ timeout: 5000 });
@@ -93,7 +93,7 @@ test.describe("Kompletter TMSA Durchlauf", () => {
       await expect(page.getByText("Schnell-Tour erstellen")).toBeVisible();
       await page.getByLabel("Tour-Nummer").fill(tourNr);
       await page.getByLabel("Tour-Datum").fill(tourDatum);
-      await selectOption(page, "Niederlassung", "Gersthofen");
+      await selectOption(page, "Niederlassung", "Augsburg");
       await page.getByRole("button", { name: "Erstellen" }).click();
 
       await expect(page.getByText(tourNr)).toBeVisible({ timeout: 5000 });
@@ -154,8 +154,8 @@ test.describe("Kompletter TMSA Durchlauf", () => {
       await expect(page.getByText(`Detail: ${tourNr}`)).toBeVisible({ timeout: 3000 });
 
       // TU + Kondition setzen
-      await selectOption(page, "TU", "Meyer");
-      await selectOption(page, "Kondition", "Meyer");
+      await selectOption(page, "TU", "Hartmann");
+      await selectOption(page, "Kondition", "Hartmann");
 
       // Kilometer
       await page.getByLabel("Last-km").fill("100");
