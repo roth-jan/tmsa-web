@@ -300,6 +300,7 @@ async function seed() {
     "berichte",
     "benutzer",
     "umschlagpunkt", "gebrocheneverkehre",
+    "auditlog", "edi",
   ];
   const aktionen = ["lesen", "erstellen", "bearbeiten", "loeschen"];
 

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AppShell, NavLink, Group, Title, Text, Button, Burger, Modal, PasswordInput, Stack, Alert } from "@mantine/core";
+import { useState, useEffect } from "react";
+import { AppShell, NavLink, Group, Title, Text, Button, Burger, Modal, PasswordInput, Stack, Alert, Select, Badge } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -25,7 +25,7 @@ const navItems = [
     { label: "Mengenplan", path: "/mengenplan", modul: "mengenplan" },
     { label: "Dispo-Orte", path: "/dispo-orte", modul: "dispoort" },
     { label: "Dispo-Regeln", path: "/dispo-regeln", modul: "disporegel" },
-    { label: "EDI Simulator", path: "/edi-simulator", modul: "avis" },
+    { label: "EDI Eingang", path: "/edi-simulator", modul: "avis" },
   ]},
   { group: "Operativ", items: [
     { label: "Abfahrten", path: "/abfahrten", modul: "abfahrt" },
@@ -38,8 +38,9 @@ const navItems = [
   { group: "Berichte", items: [
     { label: "Berichte", path: "/berichte", modul: "berichte" },
   ]},
-  { group: "Administration", items: [
+  { group: "Verwaltung", items: [
     { label: "Benutzer", path: "/benutzer", modul: "benutzer" },
+    { label: "Audit-Log", path: "/audit-log", modul: "auditlog" },
   ]},
 ];
 
@@ -52,6 +53,39 @@ export function AppLayout() {
   const [pwForm, setPwForm] = useState({ alt: "", neu: "", bestaetigung: "" });
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState("");
+
+  // NL-Selektor State
+  const [niederlassungen, setNiederlassungen] = useState<{ value: string; label: string }[]>([]);
+  const [selectedNl, setSelectedNl] = useState<string | null>(user?.niederlassungId || null);
+  const istAdmin = hatRecht("benutzer", "bearbeiten");
+
+  useEffect(() => {
+    if (istAdmin) {
+      api("/niederlassungen?limit=500")
+        .then((res) => {
+          setNiederlassungen(
+            res.data.map((nl: any) => ({ value: nl.id, label: nl.name }))
+          );
+        })
+        .catch(() => {});
+    }
+  }, [istAdmin]);
+
+  useEffect(() => {
+    setSelectedNl(user?.niederlassungId || null);
+  }, [user?.niederlassungId]);
+
+  const nlWechseln = async (nlId: string | null) => {
+    try {
+      await api("/auth/nl-wechseln", {
+        method: "POST",
+        body: JSON.stringify({ niederlassungId: nlId }),
+      });
+      window.location.reload();
+    } catch {
+      // ignore
+    }
+  };
 
   const pwReset = () => {
     setPwForm({ alt: "", neu: "", bestaetigung: "" });
@@ -99,8 +133,27 @@ export function AppLayout() {
             <Title order={3}>TMSA</Title>
           </Group>
           <Group>
+            {/* NL-Selektor */}
+            {istAdmin ? (
+              <Select
+                size="xs"
+                placeholder="Alle NL"
+                data={[{ value: "__alle__", label: "Alle NL" }, ...niederlassungen]}
+                value={selectedNl || "__alle__"}
+                onChange={(val) => {
+                  const nlId = val === "__alle__" ? null : val;
+                  setSelectedNl(nlId);
+                  nlWechseln(nlId);
+                }}
+                style={{ width: 160 }}
+              />
+            ) : (
+              user?.niederlassung && (
+                <Badge variant="light" size="lg">{user.niederlassung}</Badge>
+              )
+            )}
             <Text size="sm" c="dimmed">
-              {user?.vorname} {user?.nachname} ({user?.niederlassung})
+              {user?.vorname} {user?.nachname}
             </Text>
             <Button variant="subtle" size="xs" onClick={() => { pwReset(); openPwModal(); }}>
               Passwort ändern

@@ -3,9 +3,11 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import session from "express-session";
+import { auditStore } from "./db";
 
 import authRouter from "./routes/auth";
 import benutzerRouter from "./routes/benutzer";
+import auditRouter from "./routes/audit";
 import avisRouter from "./routes/avis";
 import tourRouter from "./routes/tour";
 import mengenplanRouter from "./routes/mengenplan";
@@ -17,6 +19,7 @@ import berichteRouter from "./routes/berichte";
 import gebrocheneVerkehreRouter from "./routes/gebrochene-verkehre";
 import dashboardRouter from "./routes/dashboard";
 import pdfRouter from "./routes/pdf";
+import ediRouter from "./routes/edi";
 import {
   niederlassungRouter,
   oemRouter,
@@ -54,6 +57,14 @@ app.use(session({
   },
 }));
 
+// Audit-Context Middleware: User-Infos für Prisma-Middleware durchreichen
+app.use((req, _res, next) => {
+  auditStore.run(
+    { userId: req.session?.userId, benutzerName: req.session?.benutzername },
+    () => next()
+  );
+});
+
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/benutzer", benutzerRouter);
@@ -80,6 +91,8 @@ app.use("/api/berichte", berichteRouter);
 app.use("/api/gebrochene-verkehre", gebrocheneVerkehreRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/pdf", pdfRouter);
+app.use("/api/audit-log", auditRouter);
+app.use("/api/edi", ediRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {

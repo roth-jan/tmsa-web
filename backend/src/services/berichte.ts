@@ -157,6 +157,140 @@ export async function berichtSendungen(
   });
 }
 
+// 7. Ausfallfrachten (Leerfahrten oder Touren ohne Artikelzeilen)
+export async function berichtAusfallfrachten(
+  filter: DateFilter & { tuId?: string },
+  nlId?: string
+) {
+  const where: any = {
+    geloeschtAm: null,
+    ...datumWhere("tourDatum", filter),
+    OR: [
+      { istLeerfahrt: true },
+      { artikelzeilen: { none: {} } },
+    ],
+  };
+  if (nlId) where.niederlassungId = nlId;
+  if (filter.tuId) where.transportUnternehmerId = filter.tuId;
+
+  return prisma.tour.findMany({
+    where,
+    include: {
+      transportUnternehmer: { select: { name: true, kurzbezeichnung: true } },
+      route: { select: { routennummer: true } },
+      kfz: { select: { kennzeichen: true } },
+      _count: { select: { artikelzeilen: true } },
+    },
+    orderBy: { tourDatum: "asc" },
+  });
+}
+
+// 8. DFUE-Übersicht (EDI-Imports aus AuditLog)
+export async function berichtDfueUebersicht(
+  filter: DateFilter,
+  nlId?: string
+) {
+  const where: any = {
+    modell: "Avis",
+    aktion: "create",
+  };
+  if (filter.datumVon) where.zeitpunkt = { ...where.zeitpunkt, gte: new Date(filter.datumVon) };
+  if (filter.datumBis) where.zeitpunkt = { ...where.zeitpunkt, lte: new Date(filter.datumBis + "T23:59:59") };
+
+  const logs = await prisma.auditLog.findMany({
+    where,
+    orderBy: { zeitpunkt: "desc" },
+    take: 500,
+  });
+
+  // Filter: Nur Avise die per EDI erstellt wurden (Bemerkung enthält "EDI")
+  return logs.filter((l: any) => {
+    const nw = l.neuerWert as any;
+    return nw?.bemerkung?.includes("EDI");
+  }).map((l: any) => {
+    const nw = l.neuerWert as any;
+    return {
+      zeitpunkt: l.zeitpunkt,
+      avisNummer: nw?.avisNummer || "",
+      format: nw?.bemerkung?.match(/EDI[- ]?(\S+)/)?.[1] || "VDA4913",
+      status: "success",
+      benutzerName: l.benutzerName,
+    };
+  });
+}
+
+// 9. Fahrzeugliste (Touren gruppiert nach KFZ)
+export async function berichtFahrzeugliste(
+  filter: DateFilter & { tuId?: string },
+  nlId?: string
+) {
+  const where: any = {
+    geloeschtAm: null,
+    kfzId: { not: null },
+    ...datumWhere("tourDatum", filter),
+  };
+  if (nlId) where.niederlassungId = nlId;
+  if (filter.tuId) where.transportUnternehmerId = filter.tuId;
+
+  const touren = await prisma.tour.findMany({
+    where,
+    include: {
+      kfz: { select: { kennzeichen: true, fabrikat: true, lkwTyp: true } },
+      transportUnternehmer: { select: { kurzbezeichnung: true } },
+    },
+  });
+
+  const grouped = new Map<string, {
+    kennzeichen: string; fabrikat: string; lkwTyp: string; tu: string;
+    anzahlTouren: number; summeKosten: number;
+  }>();
+
+  for (const t of touren) {
+    const kfzId = t.kfzId!;
+    const entry = grouped.get(kfzId) || {
+      kennzeichen: t.kfz?.kennzeichen || "",
+      fabrikat: t.kfz?.fabrikat || "",
+      lkwTyp: t.kfz?.lkwTyp || "",
+      tu: t.transportUnternehmer?.kurzbezeichnung || "",
+      anzahlTouren: 0,
+      summeKosten: 0,
+    };
+    entry.anzahlTouren++;
+    entry.summeKosten += Number(t.kostenKondition || 0);
+    grouped.set(kfzId, entry);
+  }
+
+  return Array.from(grouped.values()).map((e) => ({
+    ...e,
+    summeKosten: Math.round(e.summeKosten * 100) / 100,
+    durchschnittKosten: e.anzahlTouren > 0 ? Math.round((e.summeKosten / e.anzahlTouren) * 100) / 100 : 0,
+  }));
+}
+
+// 10. Konditionsübersicht
+export async function berichtKonditionsuebersicht(
+  filter: { tuId?: string; routeId?: string },
+  nlId?: string
+) {
+  const where: any = { geloeschtAm: null };
+  if (filter.tuId) where.transportUnternehmerId = filter.tuId;
+  if (filter.routeId) where.routeId = filter.routeId;
+
+  // NL-Filter via TU
+  if (nlId) {
+    where.transportUnternehmer = { niederlassungId: nlId };
+  }
+
+  return prisma.kondition.findMany({
+    where,
+    include: {
+      transportUnternehmer: { select: { name: true, kurzbezeichnung: true } },
+      route: { select: { routennummer: true, beschreibung: true } },
+    },
+    orderBy: { erstelltAm: "desc" },
+  });
+}
+
 // 6. Abrechnungsjournal
 export async function berichtAbrechnungen(
   filter: { buchungsjahr?: number; tuId?: string; status?: string },

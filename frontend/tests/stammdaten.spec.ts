@@ -43,7 +43,7 @@ test.describe("Werke", () => {
     await page.getByLabel("Werkscode").fill("TST");
     // OEM-Dropdown auswählen (Pflichtfeld)
     await page.getByRole("textbox", { name: "OEM" }).click();
-    await page.locator("[role='option']").first().click();
+    await page.getByRole("option").first().click();
     await page.getByRole("button", { name: "Speichern" }).click();
 
     // Warten bis Modal geschlossen und Tabelle aktualisiert
@@ -110,7 +110,7 @@ test.describe("KFZ", () => {
       .getByRole("textbox", { name: "Transport-Unternehmer" })
       .click();
     // Erste Option wählen
-    await page.locator("[role='option']").first().click();
+    await page.getByRole("option").first().click();
 
     await page.getByRole("button", { name: "Speichern" }).click();
 

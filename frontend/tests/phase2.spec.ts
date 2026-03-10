@@ -19,7 +19,7 @@ async function selectOption(page: any, label: string, searchText: string) {
   const input = page.getByRole("textbox", { name: label });
   await input.click();
   await input.fill(searchText);
-  await page.locator("[role='option']:visible").first().click();
+  await page.getByRole("option").first().click();
 }
 
 // ============================================================

@@ -23,13 +23,13 @@ test.describe("EDI Simulator", () => {
     await loginViaApi(page);
     await page.goto("/edi-simulator");
     await expect(
-      page.getByRole("heading", { name: "EDI Eingang (VDA 4913 Simulator)" })
+      page.getByRole("heading", { name: "EDI Eingang" })
     ).toBeVisible({ timeout: 10000 });
   });
 
   test("Seite laden — Heading sichtbar", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: "EDI Eingang (VDA 4913 Simulator)" })
+      page.getByRole("heading", { name: "EDI Eingang" })
     ).toBeVisible();
   });
 

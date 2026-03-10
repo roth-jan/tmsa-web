@@ -11,6 +11,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const EUR = (v: any) => v != null ? `${Number(v).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : "";
 const datumFmt = (p: any) => p.value ? new Date(p.value).toLocaleDateString("de-DE") : "";
+const zeitFmt = (p: any) => p.value ? new Date(p.value).toLocaleString("de-DE") : "";
 const API_BASE = "http://localhost:3001/api";
 
 function csvUrl(endpoint: string, params: Record<string, string>) {
@@ -26,7 +27,7 @@ interface BerichtTabProps {
   columns: ColDef[];
   extraFilters?: React.ReactNode;
   extraParams?: Record<string, string>;
-  datumFeld?: "datum" | "buchungsjahr";
+  datumFeld?: "datum" | "buchungsjahr" | "none";
 }
 
 function BerichtTab({ endpoint, columns, extraParams = {}, datumFeld = "datum" }: BerichtTabProps) {
@@ -45,9 +46,10 @@ function BerichtTab({ endpoint, columns, extraParams = {}, datumFeld = "datum" }
     if (datumFeld === "datum") {
       if (datumVon) params.datumVon = datumVon;
       if (datumBis) params.datumBis = datumBis;
-    } else {
+    } else if (datumFeld === "buchungsjahr") {
       if (buchungsjahr) params.buchungsjahr = buchungsjahr;
     }
+    // "none" = keine Datumsfilter
     return params;
   }, [datumVon, datumBis, buchungsjahr, extraParams, datumFeld]);
 
@@ -83,11 +85,11 @@ function BerichtTab({ endpoint, columns, extraParams = {}, datumFeld = "datum" }
               <TextInput label="Datum bis" type="date" value={datumBis}
                 onChange={(e) => setDatumBis(e.target.value)} style={{ width: 160 }} />
             </>
-          ) : (
+          ) : datumFeld === "buchungsjahr" ? (
             <TextInput label="Buchungsjahr" type="number" value={buchungsjahr}
               onChange={(e) => setBuchungsjahr(e.target.value)} style={{ width: 120 }} />
-          )}
-          <Button mt="xl" onClick={laden} loading={loading}>Laden</Button>
+          ) : null}
+          <Button mt={datumFeld === "none" ? undefined : "xl"} onClick={laden} loading={loading}>Laden</Button>
         </Group>
       </Paper>
 
@@ -186,6 +188,49 @@ const abrechnungenCols: ColDef[] = [
   })},
 ];
 
+// Neue Berichte
+const ausfallfrachtCols: ColDef[] = [
+  { field: "tourNummer", headerName: "Tour-Nr.", width: 130 },
+  { field: "tourDatum", headerName: "Datum", width: 110, valueFormatter: datumFmt },
+  { field: "status", headerName: "Status", width: 110 },
+  { field: "transportUnternehmer.kurzbezeichnung", headerName: "TU", width: 90 },
+  { field: "route.routennummer", headerName: "Route", width: 110 },
+  { field: "kfz.kennzeichen", headerName: "KFZ", width: 120 },
+  { field: "istLeerfahrt", headerName: "Leerfahrt", width: 90, valueFormatter: (p: any) => p.value ? "Ja" : "Nein" },
+  { field: "_count.artikelzeilen", headerName: "Zeilen", width: 80, type: "numericColumn" },
+];
+
+const dfueCols: ColDef[] = [
+  { field: "zeitpunkt", headerName: "Zeitpunkt", width: 170, valueFormatter: zeitFmt },
+  { field: "avisNummer", headerName: "Avis-Nr.", width: 200 },
+  { field: "format", headerName: "Format", width: 110 },
+  { field: "status", headerName: "Status", width: 90 },
+  { field: "benutzerName", headerName: "Benutzer", width: 120 },
+];
+
+const fahrzeugCols: ColDef[] = [
+  { field: "kennzeichen", headerName: "Kennzeichen", width: 130 },
+  { field: "fabrikat", headerName: "Fabrikat", width: 140 },
+  { field: "lkwTyp", headerName: "Typ", width: 110 },
+  { field: "tu", headerName: "TU", width: 90 },
+  { field: "anzahlTouren", headerName: "Touren", width: 80, type: "numericColumn" },
+  { field: "summeKosten", headerName: "Kosten", width: 120, valueFormatter: (p: any) => EUR(p.value) },
+  { field: "durchschnittKosten", headerName: "Ø Kosten", width: 120, valueFormatter: (p: any) => EUR(p.value) },
+];
+
+const konditionCols: ColDef[] = [
+  { field: "transportUnternehmer.name", headerName: "TU", width: 180 },
+  { field: "route.routennummer", headerName: "Route", width: 110 },
+  { field: "name", headerName: "Name", width: 180 },
+  { field: "tourFaktor", headerName: "Tour-F.", width: 90, type: "numericColumn" },
+  { field: "stoppFaktor", headerName: "Stopp-F.", width: 90, type: "numericColumn" },
+  { field: "lastKmFaktor", headerName: "Last-km", width: 90, type: "numericColumn" },
+  { field: "leerKmFaktor", headerName: "Leer-km", width: 90, type: "numericColumn" },
+  { field: "mautKmFaktor", headerName: "Maut-km", width: 90, type: "numericColumn" },
+  { field: "gueltigVon", headerName: "Gültig von", width: 110, valueFormatter: datumFmt },
+  { field: "gueltigBis", headerName: "Gültig bis", width: 110, valueFormatter: datumFmt },
+];
+
 // ============================================================
 // Hauptseite
 // ============================================================
@@ -203,6 +248,10 @@ export function BerichtePage() {
           <Tabs.Tab value="abfahrten">Abfahrten</Tabs.Tab>
           <Tabs.Tab value="sendungen">Sendungen</Tabs.Tab>
           <Tabs.Tab value="abrechnungen">Abrechnungen</Tabs.Tab>
+          <Tabs.Tab value="ausfallfrachten">Ausfallfrachten</Tabs.Tab>
+          <Tabs.Tab value="dfue">DFUE</Tabs.Tab>
+          <Tabs.Tab value="fahrzeugliste">Fahrzeugliste</Tabs.Tab>
+          <Tabs.Tab value="konditionen">Konditionen</Tabs.Tab>
         </Tabs.List>
 
         <div style={{ paddingTop: "var(--mantine-spacing-md)" }}>
@@ -212,6 +261,10 @@ export function BerichtePage() {
           {activeTab === "abfahrten" && <BerichtTab endpoint="abfahrten" columns={abfahrtenCols} />}
           {activeTab === "sendungen" && <BerichtTab endpoint="sendungen" columns={sendungenCols} />}
           {activeTab === "abrechnungen" && <BerichtTab endpoint="abrechnungen" columns={abrechnungenCols} datumFeld="buchungsjahr" />}
+          {activeTab === "ausfallfrachten" && <BerichtTab endpoint="ausfallfrachten" columns={ausfallfrachtCols} />}
+          {activeTab === "dfue" && <BerichtTab endpoint="dfue" columns={dfueCols} />}
+          {activeTab === "fahrzeugliste" && <BerichtTab endpoint="fahrzeugliste" columns={fahrzeugCols} />}
+          {activeTab === "konditionen" && <BerichtTab endpoint="konditionsuebersicht" columns={konditionCols} datumFeld="none" />}
         </div>
       </Tabs>
     </Stack>

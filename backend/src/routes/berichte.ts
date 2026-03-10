@@ -8,6 +8,10 @@ import {
   berichtAbfahrten,
   berichtSendungen,
   berichtAbrechnungen,
+  berichtAusfallfrachten,
+  berichtDfueUebersicht,
+  berichtFahrzeugliste,
+  berichtKonditionsuebersicht,
 } from "../services/berichte";
 
 const router = Router();
@@ -163,6 +167,100 @@ router.get("/abrechnungen", requireAuth, requireRecht("berichte", "lesen"), asyn
     const bj = buchungsjahr ? parseInt(buchungsjahr) : undefined;
     const data = await berichtAbrechnungen({ buchungsjahr: bj, tuId, status }, nlId);
     if (format === "csv") return sendCsv(res, data, abrechnungenCols, "abrechnungen");
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 7. Ausfallfrachten
+const ausfallfrachtCols: CsvColumn[] = [
+  { header: "Tour-Nr.", field: "tourNummer" },
+  { header: "Datum", field: "tourDatum", format: "date" },
+  { header: "Status", field: "status" },
+  { header: "TU", field: "transportUnternehmer.kurzbezeichnung" },
+  { header: "Route", field: "route.routennummer" },
+  { header: "KFZ", field: "kfz.kennzeichen" },
+  { header: "Leerfahrt", field: "istLeerfahrt" },
+  { header: "Zeilen", field: "_count.artikelzeilen" },
+];
+
+router.get("/ausfallfrachten", requireAuth, requireRecht("berichte", "lesen"), async (req: Request, res: Response) => {
+  try {
+    const { datumVon, datumBis, tuId, format } = req.query as any;
+    const nlId = req.session.niederlassungId || undefined;
+    const data = await berichtAusfallfrachten({ datumVon, datumBis, tuId }, nlId);
+    if (format === "csv") return sendCsv(res, data, ausfallfrachtCols, "ausfallfrachten");
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 8. DFUE-Übersicht
+const dfueCols: CsvColumn[] = [
+  { header: "Zeitpunkt", field: "zeitpunkt", format: "date" },
+  { header: "Avis-Nr.", field: "avisNummer" },
+  { header: "Format", field: "format" },
+  { header: "Status", field: "status" },
+  { header: "Benutzer", field: "benutzerName" },
+];
+
+router.get("/dfue", requireAuth, requireRecht("berichte", "lesen"), async (req: Request, res: Response) => {
+  try {
+    const { datumVon, datumBis, format } = req.query as any;
+    const nlId = req.session.niederlassungId || undefined;
+    const data = await berichtDfueUebersicht({ datumVon, datumBis }, nlId);
+    if (format === "csv") return sendCsv(res, data, dfueCols, "dfue");
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 9. Fahrzeugliste
+const fahrzeugCols: CsvColumn[] = [
+  { header: "Kennzeichen", field: "kennzeichen" },
+  { header: "Fabrikat", field: "fabrikat" },
+  { header: "Typ", field: "lkwTyp" },
+  { header: "TU", field: "tu" },
+  { header: "Touren", field: "anzahlTouren" },
+  { header: "Kosten", field: "summeKosten", format: "decimal" },
+  { header: "Ø Kosten", field: "durchschnittKosten", format: "decimal" },
+];
+
+router.get("/fahrzeugliste", requireAuth, requireRecht("berichte", "lesen"), async (req: Request, res: Response) => {
+  try {
+    const { datumVon, datumBis, tuId, format } = req.query as any;
+    const nlId = req.session.niederlassungId || undefined;
+    const data = await berichtFahrzeugliste({ datumVon, datumBis, tuId }, nlId);
+    if (format === "csv") return sendCsv(res, data, fahrzeugCols, "fahrzeugliste");
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 10. Konditionsübersicht
+const konditionCols: CsvColumn[] = [
+  { header: "TU", field: "transportUnternehmer.name" },
+  { header: "Route", field: "route.routennummer" },
+  { header: "Name", field: "name" },
+  { header: "Tour-Faktor", field: "tourFaktor", format: "decimal" },
+  { header: "Stopp-Faktor", field: "stoppFaktor", format: "decimal" },
+  { header: "Last-km", field: "lastKmFaktor", format: "decimal" },
+  { header: "Leer-km", field: "leerKmFaktor", format: "decimal" },
+  { header: "Maut-km", field: "mautKmFaktor", format: "decimal" },
+  { header: "Gültig von", field: "gueltigVon", format: "date" },
+  { header: "Gültig bis", field: "gueltigBis", format: "date" },
+];
+
+router.get("/konditionsuebersicht", requireAuth, requireRecht("berichte", "lesen"), async (req: Request, res: Response) => {
+  try {
+    const { tuId, routeId, format } = req.query as any;
+    const nlId = req.session.niederlassungId || undefined;
+    const data = await berichtKonditionsuebersicht({ tuId, routeId }, nlId);
+    if (format === "csv") return sendCsv(res, data, konditionCols, "konditionsuebersicht");
     return res.json({ data });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });

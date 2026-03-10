@@ -30,6 +30,7 @@ import { SendungsbildungPage } from "./pages/SendungsbildungPage";
 import { TuAbrechnungPage } from "./pages/TuAbrechnungPage";
 import { BerichtePage } from "./pages/BerichtePage";
 import { EdiSimulatorPage } from "./pages/EdiSimulatorPage";
+import { AuditLogPage } from "./pages/AuditLogPage";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -67,6 +68,7 @@ function AppRoutes() {
         <Route path="/tu-abrechnung" element={<TuAbrechnungPage />} />
         <Route path="/berichte" element={<BerichtePage />} />
         <Route path="/edi-simulator" element={<EdiSimulatorPage />} />
+        <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/benutzer" element={<BenutzerPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>

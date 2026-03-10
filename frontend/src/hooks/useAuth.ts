@@ -6,6 +6,7 @@ export interface User {
   vorname: string;
   nachname: string;
   niederlassung: string | null;
+  niederlassungId: string | null;
   rechte: string[];
 }
 

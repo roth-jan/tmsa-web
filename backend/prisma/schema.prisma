@@ -480,6 +480,41 @@ model Streckenabschnitt {
 }
 
 // ============================================================
+// AUDIT & EDI-IMPORT
+// ============================================================
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  modell        String
+  aktion        String   // create, update, delete
+  entitaetId    String
+  benutzerId    String?
+  benutzerName  String?
+  zeitpunkt     DateTime @default(now())
+  alterWert     Json?
+  neuerWert     Json?
+
+  @@index([modell, entitaetId])
+  @@index([benutzerId])
+  @@index([zeitpunkt])
+}
+
+model EdiImport {
+  id            String   @id @default(uuid())
+  format        String   // VDA4913, VDA4927, DESADV, IFCSUM
+  dateiname     String?
+  status        String   @default("success") // success, error, partial
+  ergebnis      Json?
+  rohdaten      String?
+  benutzerId    String?
+  benutzerName  String?
+  erstelltAm    DateTime @default(now())
+
+  @@index([format])
+  @@index([erstelltAm])
+}
+
+// ============================================================
 // ABRECHNUNG
 // ============================================================
 
