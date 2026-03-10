@@ -119,7 +119,7 @@ npx playwright test
 - [x] Avis + Artikelzeilen (Master-Detail, Custom Router)
 - [x] Tour (Custom Router, Artikelzeile zuweisen/entfernen)
 - [x] Mengenplan/Disposition (Two-Panel UI, Button-Zuweisung)
-- [ ] Gebrochene Verkehre (→ verschoben auf Phase 3+)
+- [x] Gebrochene Verkehre (→ Phase 6)
 
 ### Phase 3: Operativ ✅
 - [x] Abfahrt (Borderos, Sendungen)
@@ -137,7 +137,14 @@ npx playwright test
 - [x] AG Grid Vorschau + CSV-Download je Bericht
 - [x] Berichte-Modul mit Rechteverwaltung (Admin + Disponent)
 
-### Phase 6: EDI + Erweiterungen
+### Phase 6: Gebrochene Verkehre ✅
+- [x] UmschlagPunkt + Streckenabschnitt (Prisma Models)
+- [x] USP Stammdaten CRUD (generische Factory)
+- [x] Gebrochene-Verkehre Service (tourBrechen, zusammenführen)
+- [x] Mengenplan: GV-Badge, Tour-brechen-Modal, Streckenabschnitte-Grid
+- [x] 11 Playwright-Tests, 68/68 gesamt grün
+
+### Phase 7: EDI + Erweiterungen
 - [ ] VDA 4913 (BMW, Daimler, VW, Porsche, MAN)
 - [ ] Weitere EDI (VDA4927, DESADV, IFCSUM, IFTSTA)
 - [ ] Forecast
