@@ -191,10 +191,39 @@ npx playwright test
 - [x] PDF Bordero Test: Abfahrt mit Borderos suchen statt erste nehmen
 - [x] **92 Tests gesamt: 89 passed, 2 skipped, 0 hard failures**
 
+### Audit-Log ✅
+- [x] AuditLog Model + Prisma $extends auto-logging via AsyncLocalStorage
+- [x] 22 Business-Entities werden automatisch geloggt (create/update/delete)
+- [x] GET /api/audit-log mit Filter (Modell, Benutzer, Datum von/bis)
+- [x] AuditLogPage: AG Grid + JSON-Diff-Modal (alterWert vs neuerWert)
+- [x] Recht: auditlog.lesen (nur Admin)
+- [x] 4 Playwright-Tests
+
+### NL-Filter Completion ✅
+- [x] POST /api/auth/nl-wechseln (Admin kann NL temporär wechseln)
+- [x] NL-Selektor im Header (Select für Admins, Badge für Nicht-Admins)
+- [x] niederlassungId in Login/Me Response
+- [x] 2 Playwright-Tests
+
+### Erweiterte Berichte ✅
+- [x] 4 neue Berichte: Ausfallfrachten, DFUE-Übersicht, Fahrzeugliste, Konditionsübersicht
+- [x] BerichtePage: 10 Tabs (vorher 6), CSV-Export je Bericht
+- [x] datumFeld="none" Option für Konditionsübersicht (kein Datumsfilter)
+- [x] 4 Playwright-Tests
+
+### Erweiterte EDI-Formate ✅
+- [x] EDI-Parser: VDA 4913/4927, DESADV, IFCSUM (Format-Erkennung + Parsing)
+- [x] EdiImport Model + POST /api/edi/parse + /api/edi/import + GET /api/edi/log
+- [x] EdiSimulatorPage: 3 Tabs (Simulator, Import, Verlauf)
+- [x] Import-Tab: Text-Paste → Vorschau → Importieren
+- [x] Verlauf-Tab: AG Grid mit Import-Historik
+- [x] 6 Playwright-Tests
+- [x] **108 Tests gesamt: 105 passed, 2 flaky, 1 skipped**
+
 ### Offen / Next Steps
-- [ ] Weitere EDI (VDA4927, DESADV, IFCSUM, IFTSTA)
+- [ ] IFTSTA EDI-Format
 - [ ] Forecast
-- [ ] Erweiterte Berichte (OEM-spezifisch, Ausfallfrachten)
+- [ ] OEM-spezifische Berichte
 
 ---
 
