@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../db";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
@@ -103,6 +104,45 @@ router.get("/me", async (req: Request, res: Response) => {
       rechte: req.session.rechte || [],
     },
   });
+});
+
+// POST /api/auth/passwort-aendern
+router.post("/passwort-aendern", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { altesPasswort, neuesPasswort } = req.body;
+
+    if (!altesPasswort || !neuesPasswort) {
+      return res.status(400).json({ error: "Altes und neues Passwort erforderlich" });
+    }
+
+    if (neuesPasswort.length < 4) {
+      return res.status(400).json({ error: "Neues Passwort muss mindestens 4 Zeichen lang sein" });
+    }
+
+    const benutzer = await prisma.benutzer.findUnique({
+      where: { id: req.session.userId },
+    });
+
+    if (!benutzer) {
+      return res.status(404).json({ error: "Benutzer nicht gefunden" });
+    }
+
+    const altesKorrekt = await bcrypt.compare(altesPasswort, benutzer.passwortHash);
+    if (!altesKorrekt) {
+      return res.status(400).json({ error: "Altes Passwort ist falsch" });
+    }
+
+    const neuerHash = await bcrypt.hash(neuesPasswort, 10);
+    await prisma.benutzer.update({
+      where: { id: req.session.userId },
+      data: { passwortHash: neuerHash },
+    });
+
+    return res.json({ data: { message: "Passwort wurde geändert" } });
+  } catch (error) {
+    console.error("Passwort ändern:", error);
+    return res.status(500).json({ error: "Interner Serverfehler" });
+  }
 });
 
 export default router;

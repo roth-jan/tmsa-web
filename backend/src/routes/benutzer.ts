@@ -36,11 +36,14 @@ router.get("/", requireAuth, requireRecht("benutzer", "lesen"), async (_req: Req
   }
 });
 
-// GET /api/rollen — Alle Rollen
+// GET /api/benutzer/rollen — Alle Rollen
 router.get("/rollen", requireAuth, async (_req: Request, res: Response) => {
   try {
     const rollen = await prisma.rolle.findMany({
-      include: { rechte: { include: { recht: true } } },
+      include: {
+        rechte: { include: { recht: true } },
+        benutzer: true,
+      },
       orderBy: { name: "asc" },
     });
 
@@ -50,10 +53,130 @@ router.get("/rollen", requireAuth, async (_req: Request, res: Response) => {
         name: r.name,
         beschreibung: r.beschreibung,
         rechteAnzahl: r.rechte.length,
+        benutzerAnzahl: r.benutzer.length,
+        rechteIds: r.rechte.map((rr) => rr.rechtId),
       })),
     });
   } catch (error) {
     console.error("Rollen Liste:", error);
+    return res.status(500).json({ error: "Serverfehler" });
+  }
+});
+
+// GET /api/benutzer/rechte — Alle Rechte (gruppiert nach Modul)
+router.get("/rechte", requireAuth, async (_req: Request, res: Response) => {
+  try {
+    const rechte = await prisma.recht.findMany({
+      orderBy: [{ modul: "asc" }, { aktion: "asc" }],
+    });
+
+    // Gruppieren nach Modul
+    const grouped: Record<string, { id: string; aktion: string }[]> = {};
+    for (const r of rechte) {
+      if (!grouped[r.modul]) grouped[r.modul] = [];
+      grouped[r.modul].push({ id: r.id, aktion: r.aktion });
+    }
+
+    return res.json({
+      data: Object.entries(grouped).map(([modul, rechte]) => ({ modul, rechte })),
+    });
+  } catch (error) {
+    console.error("Rechte Liste:", error);
+    return res.status(500).json({ error: "Serverfehler" });
+  }
+});
+
+// POST /api/benutzer/rollen — Neue Rolle anlegen
+router.post("/rollen", requireAuth, requireRecht("benutzer", "bearbeiten"), async (req: Request, res: Response) => {
+  try {
+    const { name, beschreibung, rechteIds } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: "Name ist Pflicht" });
+    }
+
+    const rolle = await prisma.rolle.create({
+      data: {
+        name,
+        beschreibung: beschreibung || null,
+      },
+    });
+
+    if (rechteIds?.length) {
+      await prisma.rolleRecht.createMany({
+        data: rechteIds.map((rechtId: string) => ({ rolleId: rolle.id, rechtId })),
+      });
+    }
+
+    return res.status(201).json({ data: rolle });
+  } catch (error: any) {
+    console.error("Rolle erstellen:", error);
+    if (error.code === "P2002") {
+      return res.status(409).json({ error: "Rollenname bereits vergeben" });
+    }
+    return res.status(500).json({ error: "Serverfehler" });
+  }
+});
+
+// PUT /api/benutzer/rollen/:id — Rolle bearbeiten
+router.put("/rollen/:id", requireAuth, requireRecht("benutzer", "bearbeiten"), async (req: Request, res: Response) => {
+  try {
+    const { name, beschreibung, rechteIds } = req.body;
+
+    const rolle = await prisma.rolle.update({
+      where: { id: req.params.id },
+      data: {
+        name,
+        beschreibung: beschreibung || null,
+      },
+    });
+
+    if (rechteIds !== undefined) {
+      await prisma.rolleRecht.deleteMany({ where: { rolleId: rolle.id } });
+      if (rechteIds.length) {
+        await prisma.rolleRecht.createMany({
+          data: rechteIds.map((rechtId: string) => ({ rolleId: rolle.id, rechtId })),
+        });
+      }
+    }
+
+    return res.json({ data: rolle });
+  } catch (error: any) {
+    console.error("Rolle bearbeiten:", error);
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Rolle nicht gefunden" });
+    }
+    if (error.code === "P2002") {
+      return res.status(409).json({ error: "Rollenname bereits vergeben" });
+    }
+    return res.status(500).json({ error: "Serverfehler" });
+  }
+});
+
+// DELETE /api/benutzer/rollen/:id — Rolle löschen
+router.delete("/rollen/:id", requireAuth, requireRecht("benutzer", "bearbeiten"), async (req: Request, res: Response) => {
+  try {
+    // Prüfen ob noch Benutzer zugewiesen
+    const zugewiesen = await prisma.benutzerRolle.count({
+      where: { rolleId: req.params.id },
+    });
+
+    if (zugewiesen > 0) {
+      return res.status(400).json({
+        error: `Rolle kann nicht gelöscht werden — ${zugewiesen} Benutzer zugewiesen`,
+      });
+    }
+
+    // Rechte-Zuordnungen löschen, dann Rolle
+    await prisma.rolleRecht.deleteMany({ where: { rolleId: req.params.id } });
+    await prisma.rolle.delete({ where: { id: req.params.id } });
+
+    return res.json({ data: { message: "Rolle gelöscht" } });
+  } catch (error: any) {
+    console.error("Rolle löschen:", error);
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Rolle nicht gefunden" });
+    }
     return res.status(500).json({ error: "Serverfehler" });
   }
 });
