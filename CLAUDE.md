@@ -144,6 +144,14 @@ npx playwright test
 - [x] Mengenplan: GV-Badge, Tour-brechen-Modal, Streckenabschnitte-Grid
 - [x] 11 Playwright-Tests, 68/68 gesamt grün
 
+### Dashboard: KPIs & Übersichten ✅
+- [x] Backend: GET /api/dashboard/kennzahlen (13 KPIs in einem Request)
+- [x] 4 KPI-Cards (Offene Zeilen, Touren heute, Avise offen, Abrechnungen offen)
+- [x] Touren-Status RingProgress (offen/disponiert/abgefahren/abgeschlossen)
+- [x] Tagesübersicht (Abfahrten, Sendungen, Gebrochene, Monatskosten)
+- [x] Letzte-Touren AG Grid (5 neueste Touren)
+- [x] 6 Playwright-Tests, 71/74 gesamt grün (3+6 pre-existing Phase 4/6 Failures)
+
 ### Phase 7: EDI + Erweiterungen
 - [ ] VDA 4913 (BMW, Daimler, VW, Porsche, MAN)
 - [ ] Weitere EDI (VDA4927, DESADV, IFCSUM, IFTSTA)
