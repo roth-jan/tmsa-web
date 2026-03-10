@@ -14,6 +14,7 @@ import abfahrtRouter from "./routes/abfahrt";
 import sendungRouter from "./routes/sendung";
 import tuabrechnungRouter from "./routes/tuabrechnung";
 import berichteRouter from "./routes/berichte";
+import gebrocheneVerkehreRouter from "./routes/gebrochene-verkehre";
 import {
   niederlassungRouter,
   oemRouter,
@@ -26,6 +27,7 @@ import {
   konditionRouter,
   dispoOrtRouter,
   dispoRegelRouter,
+  umschlagPunktRouter,
 } from "./routes/stammdaten";
 
 const app = express();
@@ -64,6 +66,7 @@ app.use("/api/routen", routeRouter);
 app.use("/api/konditionen", konditionRouter);
 app.use("/api/dispo-orte", dispoOrtRouter);
 app.use("/api/dispo-regeln", dispoRegelRouter);
+app.use("/api/umschlag-punkte", umschlagPunktRouter);
 app.use("/api/avise", avisRouter);
 app.use("/api/touren", tourRouter);
 app.use("/api/mengenplan", mengenplanRouter);
@@ -72,6 +75,7 @@ app.use("/api/abfahrten", abfahrtRouter);
 app.use("/api/sendungen", sendungRouter);
 app.use("/api/tu-abrechnung", tuabrechnungRouter);
 app.use("/api/berichte", berichteRouter);
+app.use("/api/gebrochene-verkehre", gebrocheneVerkehreRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {

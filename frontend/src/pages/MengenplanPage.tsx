@@ -32,7 +32,16 @@ const offeneZeilenCols: ColDef[] = [
 ];
 
 const tourenCols: ColDef[] = [
-  { field: "tourNummer", headerName: "Tour-Nr.", width: 130 },
+  {
+    field: "tourNummer", headerName: "Tour-Nr.", width: 130,
+    cellRenderer: (p: any) => {
+      if (!p.data) return p.value;
+      const badge = p.data.istGebrochen
+        ? ' <span style="background:#e64980;color:white;padding:1px 5px;border-radius:4px;font-size:10px;margin-left:4px">GV</span>'
+        : "";
+      return `${p.value}${badge}`;
+    },
+  },
   {
     field: "tourDatum", headerName: "Datum", width: 100,
     valueFormatter: (p: any) => p.value ? new Date(p.value).toLocaleDateString("de-DE") : "",
@@ -55,10 +64,29 @@ const tourZeilenCols: ColDef[] = [
   { field: "avis.lieferant.name", headerName: "Lieferant", width: 140 },
 ];
 
+const streckenabschnitteCols: ColDef[] = [
+  {
+    field: "typ", headerName: "Typ", width: 70,
+    cellRenderer: (p: any) => {
+      const colors: Record<string, string> = { VL: "#228be6", HL: "#fab005", NL: "#40c057" };
+      const c = colors[p.value] || "#868e96";
+      return `<span style="background:${c};color:white;padding:1px 6px;border-radius:4px;font-size:11px">${p.value}</span>`;
+    },
+  },
+  { field: "vonBeschreibung", headerName: "Von", flex: 1 },
+  { field: "nachBeschreibung", headerName: "Nach", flex: 1 },
+  { field: "umschlagPunkt.name", headerName: "USP", width: 130 },
+  { field: "transportUnternehmer.kurzbezeichnung", headerName: "TU", width: 80 },
+  { field: "kfz.kennzeichen", headerName: "KFZ", width: 110 },
+  { field: "route.routennummer", headerName: "Route", width: 100 },
+  { field: "status", headerName: "Status", width: 90 },
+];
+
 export function MengenplanPage() {
   const { hatRecht } = useAuth();
   const darfBearbeiten = hatRecht("mengenplan", "bearbeiten");
   const darfErstellen = hatRecht("mengenplan", "erstellen");
+  const darfGvBearbeiten = hatRecht("gebrocheneverkehre", "bearbeiten");
 
   // Filter
   const [datumVon, setDatumVon] = useState(new Date().toISOString().split("T")[0]);
@@ -77,15 +105,27 @@ export function MengenplanPage() {
   const [selectedTourZeilen, setSelectedTourZeilen] = useState<any[]>([]);
   const [error, setError] = useState("");
 
+  // Streckenabschnitte (gebrochene Verkehre)
+  const [abschnitte, setAbschnitte] = useState<any[]>([]);
+
   // Dropdown data
   const [lieferantenOpts, setLieferantenOpts] = useState<any[]>([]);
   const [werkeOpts, setWerkeOpts] = useState<any[]>([]);
   const [nlOpts, setNlOpts] = useState<any[]>([]);
   const [routenOpts, setRoutenOpts] = useState<any[]>([]);
+  const [uspOpts, setUspOpts] = useState<any[]>([]);
+  const [tuOpts, setTuOpts] = useState<any[]>([]);
+  const [kfzOpts, setKfzOpts] = useState<any[]>([]);
 
   // Neue Tour Modal
   const [tourModalOpen, { open: openTourModal, close: closeTourModal }] = useDisclosure(false);
   const [neueTourForm, setNeueTourForm] = useState<Record<string, any>>({});
+
+  // Tour Brechen Modal
+  const [brechenModalOpen, { open: openBrechenModal, close: closeBrechenModal }] = useDisclosure(false);
+  const [brechenUspId, setBrechenUspId] = useState<string | null>(null);
+  const [brechenVon, setBrechenVon] = useState("");
+  const [brechenNach, setBrechenNach] = useState("");
 
   const ladeFilterOptionen = useCallback(async () => {
     const [lief, werk] = await Promise.all([
@@ -116,6 +156,7 @@ export function MengenplanPage() {
       setTourZeilen([]);
       setSelectedOffene([]);
       setSelectedTourZeilen([]);
+      setAbschnitte([]);
     } catch (err: any) {
       setError(err.message);
     }
@@ -177,6 +218,95 @@ export function MengenplanPage() {
     }
   };
 
+  // ---- Gebrochene Verkehre ----
+
+  const tourBrechenOeffnen = async () => {
+    if (!selectedTour) return;
+    setError("");
+    setBrechenUspId(null);
+    setBrechenVon("");
+    setBrechenNach("");
+    try {
+      const [usps, tus, kfzs, routs] = await Promise.all([
+        api("/gebrochene-verkehre/umschlag-punkte"),
+        api("/transport-unternehmer?limit=500"),
+        api("/kfz?limit=500"),
+        api("/routen?limit=500"),
+      ]);
+      setUspOpts(usps.data.map((u: any) => ({ value: u.id, label: `${u.name} (${u.kurzbezeichnung})` })));
+      setTuOpts(tus.data.map((t: any) => ({ value: t.id, label: `${t.name} (${t.kurzbezeichnung})` })));
+      setKfzOpts(kfzs.data.map((k: any) => ({ value: k.id, label: k.kennzeichen })));
+      setRoutenOpts(routs.data.map((r: any) => ({ value: r.id, label: `${r.routennummer} — ${r.beschreibung || ""}` })));
+      openBrechenModal();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const tourBrechenAusfuehren = async () => {
+    if (!selectedTour || !brechenUspId) return;
+    const usp = uspOpts.find((u) => u.value === brechenUspId);
+    const uspName = usp?.label || "USP";
+    const von = brechenVon || "Lieferant";
+    const nach = brechenNach || "Werk";
+
+    try {
+      await api(`/gebrochene-verkehre/touren/${selectedTour.id}/brechen`, {
+        method: "POST",
+        body: JSON.stringify({
+          abschnitte: [
+            { reihenfolge: 1, typ: "VL", vonBeschreibung: von, nachBeschreibung: uspName, umschlagPunktId: brechenUspId },
+            { reihenfolge: 2, typ: "NL", vonBeschreibung: uspName, nachBeschreibung: nach, umschlagPunktId: brechenUspId },
+          ],
+        }),
+      });
+      closeBrechenModal();
+      aktualisieren();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const tourZusammenfuehren = async () => {
+    if (!selectedTour) return;
+    if (!confirm("Brechung wirklich aufheben? Alle Streckenabschnitte werden gelöscht.")) return;
+    try {
+      await api(`/gebrochene-verkehre/touren/${selectedTour.id}/zusammenfuehren`, {
+        method: "DELETE",
+      });
+      aktualisieren();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const ladeAbschnitte = async (tourId: string) => {
+    try {
+      const res = await api(`/gebrochene-verkehre/touren/${tourId}/abschnitte`);
+      setAbschnitte(res.data);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const onTourSelected = (e: RowSelectedEvent) => {
+    if (e.node.isSelected()) {
+      const tour = e.data;
+      setSelectedTour(tour);
+      setTourZeilen(tour.artikelzeilen || []);
+      if (tour.istGebrochen) {
+        // Abschnitte direkt aus den mitgeladenen Daten oder via API
+        if (tour.streckenabschnitte?.length) {
+          setAbschnitte(tour.streckenabschnitte);
+        } else {
+          ladeAbschnitte(tour.id);
+        }
+      } else {
+        setAbschnitte([]);
+      }
+    }
+  };
+
   return (
     <Stack>
       <Title order={2}>Mengenplan / Disposition</Title>
@@ -225,13 +355,26 @@ export function MengenplanPage() {
           </div>
         </Grid.Col>
 
-        {/* Rechte Seite: Touren + Tour-Zeilen */}
+        {/* Rechte Seite: Touren + Tour-Zeilen / Abschnitte */}
         <Grid.Col span={5}>
           <Group justify="space-between" mb="xs">
             <Text fw={600}>Touren ({touren.length})</Text>
-            {darfErstellen && (
-              <Button size="sm" variant="light" onClick={neueTourErstellen}>+ Neue Tour</Button>
-            )}
+            <Group gap="xs">
+              {darfGvBearbeiten && selectedTour && !selectedTour.istGebrochen &&
+                ["offen", "disponiert"].includes(selectedTour.status) && (
+                <Button size="sm" variant="light" color="pink" onClick={tourBrechenOeffnen}>
+                  Tour brechen
+                </Button>
+              )}
+              {darfGvBearbeiten && selectedTour?.istGebrochen && (
+                <Button size="sm" variant="light" color="orange" onClick={tourZusammenfuehren}>
+                  Zusammenführen
+                </Button>
+              )}
+              {darfErstellen && (
+                <Button size="sm" variant="light" onClick={neueTourErstellen}>+ Neue Tour</Button>
+              )}
+            </Group>
           </Group>
           <div style={{ height: "25vh", width: "100%" }}>
             <AgGridReact
@@ -240,40 +383,58 @@ export function MengenplanPage() {
               columnDefs={tourenCols}
               defaultColDef={{ sortable: true, filter: true, resizable: true }}
               rowSelection="single"
-              onRowSelected={(e: RowSelectedEvent) => {
-                if (e.node.isSelected()) {
-                  setSelectedTour(e.data);
-                  setTourZeilen(e.data.artikelzeilen || []);
-                }
-              }}
+              onRowSelected={onTourSelected}
             />
           </div>
 
-          <Group justify="space-between" mt="sm" mb="xs">
-            <Text fw={600} size="sm">
-              {selectedTour
-                ? <>Zeilen von {selectedTour.tourNummer} <Badge size="sm">{tourZeilen.length}</Badge></>
-                : "Tour-Zeilen"
-              }
-            </Text>
-            {darfBearbeiten && selectedTourZeilen.length > 0 && (
-              <Button size="xs" variant="light" color="orange" onClick={zuruecknehmen}>
-                &laquo; {selectedTourZeilen.length} zurücknehmen
-              </Button>
-            )}
-          </Group>
-          <div style={{ height: "25vh", width: "100%" }}>
-            <AgGridReact
-              theme={themeQuartz}
-              rowData={tourZeilen}
-              columnDefs={tourZeilenCols}
-              defaultColDef={{ sortable: true, filter: true, resizable: true }}
-              rowSelection="multiple"
-              onSelectionChanged={(e) => {
-                setSelectedTourZeilen(e.api.getSelectedRows());
-              }}
-            />
-          </div>
+          {/* Streckenabschnitte (nur bei gebrochener Tour) */}
+          {selectedTour?.istGebrochen && abschnitte.length > 0 ? (
+            <>
+              <Group justify="space-between" mt="sm" mb="xs">
+                <Text fw={600} size="sm">
+                  Streckenabschnitte von {selectedTour.tourNummer}{" "}
+                  <Badge size="sm" color="pink">GV</Badge>{" "}
+                  <Badge size="sm">{abschnitte.length}</Badge>
+                </Text>
+              </Group>
+              <div style={{ height: "25vh", width: "100%" }}>
+                <AgGridReact
+                  theme={themeQuartz}
+                  rowData={abschnitte}
+                  columnDefs={streckenabschnitteCols}
+                  defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <Group justify="space-between" mt="sm" mb="xs">
+                <Text fw={600} size="sm">
+                  {selectedTour
+                    ? <>Zeilen von {selectedTour.tourNummer} <Badge size="sm">{tourZeilen.length}</Badge></>
+                    : "Tour-Zeilen"
+                  }
+                </Text>
+                {darfBearbeiten && selectedTourZeilen.length > 0 && (
+                  <Button size="xs" variant="light" color="orange" onClick={zuruecknehmen}>
+                    &laquo; {selectedTourZeilen.length} zurücknehmen
+                  </Button>
+                )}
+              </Group>
+              <div style={{ height: "25vh", width: "100%" }}>
+                <AgGridReact
+                  theme={themeQuartz}
+                  rowData={tourZeilen}
+                  columnDefs={tourZeilenCols}
+                  defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                  rowSelection="multiple"
+                  onSelectionChanged={(e) => {
+                    setSelectedTourZeilen(e.api.getSelectedRows());
+                  }}
+                />
+              </div>
+            </>
+          )}
         </Grid.Col>
       </Grid>
 
@@ -295,6 +456,32 @@ export function MengenplanPage() {
           <Group justify="flex-end">
             <Button variant="default" onClick={closeTourModal}>Abbrechen</Button>
             <Button onClick={neueTourSpeichern}>Erstellen</Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Tour Brechen Modal */}
+      <Modal opened={brechenModalOpen} onClose={closeBrechenModal} title="Tour brechen" size="md">
+        <Stack>
+          <Alert color="blue" variant="light">
+            Die Tour wird in Vorlauf (VL) und Nachlauf (NL) aufgeteilt.
+            Wählen Sie den Umschlagpunkt als Zwischenstopp.
+          </Alert>
+          <Select label="Umschlagpunkt" required searchable data={uspOpts}
+            value={brechenUspId}
+            onChange={setBrechenUspId}
+            placeholder="USP auswählen..." />
+          <TextInput label="Von (Startpunkt)" placeholder="z.B. Bosch Stuttgart"
+            value={brechenVon}
+            onChange={(e) => setBrechenVon(e.target.value)} />
+          <TextInput label="Nach (Zielpunkt)" placeholder="z.B. BMW München"
+            value={brechenNach}
+            onChange={(e) => setBrechenNach(e.target.value)} />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={closeBrechenModal}>Abbrechen</Button>
+            <Button color="pink" onClick={tourBrechenAusfuehren} disabled={!brechenUspId}>
+              Tour brechen
+            </Button>
           </Group>
         </Stack>
       </Modal>

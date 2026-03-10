@@ -9,3 +9,4 @@ export { RoutenPage } from "./RoutenPage";
 export { KonditionenPage } from "./KonditionenPage";
 export { DispoOrtePage } from "./DispoOrtePage";
 export { DispoRegelnPage } from "./DispoRegelnPage";
+export { UmschlagPunktePage } from "./UmschlagPunktePage";

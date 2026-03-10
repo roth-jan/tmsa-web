@@ -16,7 +16,8 @@ type ModelName =
   | "route"
   | "kondition"
   | "dispoOrt"
-  | "dispoRegel";
+  | "dispoRegel"
+  | "umschlagPunkt";
 
 interface StammdatenConfig {
   model: ModelName;
@@ -242,5 +243,13 @@ export const dispoRegelRouter = createStammdatenRouter({
   modul: "disporegel",
   includes: { niederlassung: true },
   searchFields: ["bezeichnung", "regeltyp"],
+  nlFilterField: "niederlassungId",
+});
+
+export const umschlagPunktRouter = createStammdatenRouter({
+  model: "umschlagPunkt",
+  modul: "umschlagpunkt",
+  includes: { niederlassung: true },
+  searchFields: ["name", "kurzbezeichnung", "ort"],
   nlFilterField: "niederlassungId",
 });

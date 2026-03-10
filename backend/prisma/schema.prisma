@@ -84,6 +84,7 @@ model Niederlassung {
   abfahrten        Abfahrt[]
   sendungen        Sendung[]
   tuAbrechnungen   TuAbrechnung[]
+  umschlagPunkte   UmschlagPunkt[]
 }
 
 model Oem {
@@ -172,6 +173,7 @@ model TransportUnternehmer {
   touren           Tour[]
   abfahrten        Abfahrt[]
   tuAbrechnungen   TuAbrechnung[]
+  streckenabschnitte Streckenabschnitt[]
 }
 
 model Kfz {
@@ -191,6 +193,7 @@ model Kfz {
 
   touren             Tour[]
   abfahrten          Abfahrt[]
+  streckenabschnitte Streckenabschnitt[]
 }
 
 model Route {
@@ -211,6 +214,7 @@ model Route {
   avise          Avis[]
   touren         Tour[]
   abfahrten      Abfahrt[]
+  streckenabschnitte Streckenabschnitt[]
 }
 
 model Kondition {
@@ -236,6 +240,7 @@ model Kondition {
 
   touren                    Tour[]
   tuAbrechnungsPositionen   TuAbrechnungsPosition[]
+  streckenabschnitte        Streckenabschnitt[]
 }
 
 // ============================================================
@@ -341,6 +346,7 @@ model Tour {
   abrechnungsStopp        Boolean   @default(false)
   abrechnungsStatus       Int       @default(0) // 0=offen, 1=bewertet, 2=freigegeben, 3=erzeugt
   bemerkungAbrechnung     String?
+  istGebrochen            Boolean   @default(false)
   niederlassungId         String
   niederlassung           Niederlassung @relation(fields: [niederlassungId], references: [id])
   erstelltAm              DateTime  @default(now())
@@ -350,6 +356,7 @@ model Tour {
   artikelzeilen           Artikelzeile[]
   abfahrten               Abfahrt[]
   tuAbrechnungsPositionen TuAbrechnungsPosition[]
+  streckenabschnitte      Streckenabschnitt[]
 }
 
 // ============================================================
@@ -420,6 +427,56 @@ model Sendung {
   erstelltAm          DateTime  @default(now())
   geaendertAm         DateTime  @updatedAt
   geloeschtAm         DateTime?
+}
+
+// ============================================================
+// GEBROCHENE VERKEHRE
+// ============================================================
+
+model UmschlagPunkt {
+  id               String    @id @default(uuid())
+  name             String
+  kurzbezeichnung  String
+  adresse          String?
+  plz              String?
+  ort              String?
+  niederlassungId  String
+  niederlassung    Niederlassung @relation(fields: [niederlassungId], references: [id])
+  aktiv            Boolean   @default(true)
+  erstelltAm       DateTime  @default(now())
+  geaendertAm      DateTime  @updatedAt
+  geloeschtAm      DateTime?
+
+  streckenabschnitte Streckenabschnitt[]
+}
+
+model Streckenabschnitt {
+  id                      String    @id @default(uuid())
+  tourId                  String
+  tour                    Tour      @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  reihenfolge             Int
+  typ                     String                    // VL, HL, NL
+  vonBeschreibung         String
+  nachBeschreibung        String
+  umschlagPunktId         String?
+  umschlagPunkt           UmschlagPunkt? @relation(fields: [umschlagPunktId], references: [id])
+  routeId                 String?
+  route                   Route?    @relation(fields: [routeId], references: [id])
+  transportUnternehmerId  String?
+  transportUnternehmer    TransportUnternehmer? @relation(fields: [transportUnternehmerId], references: [id])
+  kfzId                   String?
+  kfz                     Kfz?      @relation(fields: [kfzId], references: [id])
+  konditionId             String?
+  kondition               Kondition? @relation(fields: [konditionId], references: [id])
+  lastKilometer           Decimal?  @db.Decimal(10, 2)
+  leerKilometer           Decimal?  @db.Decimal(10, 2)
+  mautKilometer           Decimal?  @db.Decimal(10, 2)
+  kostenKondition         Decimal?  @db.Decimal(10, 2)
+  status                  String    @default("offen") // offen, disponiert, abgefahren, abgeschlossen
+  erstelltAm              DateTime  @default(now())
+  geaendertAm             DateTime  @updatedAt
+
+  @@unique([tourId, reihenfolge])
 }
 
 // ============================================================

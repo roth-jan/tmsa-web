@@ -270,6 +270,27 @@ async function seed() {
     },
   });
 
+  // 14a. Umschlagpunkt + Gebrochene Tour
+  const uspGersthofen = await prisma.umschlagPunkt.create({
+    data: { name: "USP Gersthofen", kurzbezeichnung: "USP-GER", plz: "86368", ort: "Gersthofen", niederlassungId: nlGersthofen.id },
+  });
+
+  const tourGV = await prisma.tour.create({
+    data: {
+      tourNummer: "T-2026-004",
+      tourDatum: new Date("2026-03-12"),
+      status: "disponiert",
+      istGebrochen: true,
+      niederlassungId: nlGersthofen.id,
+    },
+  });
+  await prisma.streckenabschnitt.createMany({
+    data: [
+      { tourId: tourGV.id, reihenfolge: 1, typ: "VL", vonBeschreibung: "Bosch Stuttgart", nachBeschreibung: "USP Gersthofen", umschlagPunktId: uspGersthofen.id },
+      { tourId: tourGV.id, reihenfolge: 2, typ: "NL", vonBeschreibung: "USP Gersthofen", nachBeschreibung: "BMW München", umschlagPunktId: uspGersthofen.id, routeId: routeBmw1.id, transportUnternehmerId: tuMeyer.id },
+    ],
+  });
+
   // 14. Rechte
   const module = [
     "niederlassung", "oem", "werk", "lieferant", "abladestelle",
@@ -278,6 +299,7 @@ async function seed() {
     "avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung", "tuabrechnung",
     "berichte",
     "benutzer",
+    "umschlagpunkt", "gebrocheneverkehre",
   ];
   const aktionen = ["lesen", "erstellen", "bearbeiten", "loeschen"];
 
@@ -307,8 +329,8 @@ async function seed() {
   });
 
   // Disponent: Leserecht auf alle Stammdaten
-  const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition", "dispoort", "disporegel", "berichte"];
-  const kernModule = ["avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung"];
+  const stammdatenModule = ["niederlassung", "oem", "werk", "lieferant", "abladestelle", "tu", "kfz", "route", "kondition", "dispoort", "disporegel", "berichte", "umschlagpunkt"];
+  const kernModule = ["avis", "mengenplan", "tour", "abfahrt", "nacharbeit", "sendung", "gebrocheneverkehre"];
   const alleDispoRechte = await prisma.recht.findMany({
     where: {
       OR: [

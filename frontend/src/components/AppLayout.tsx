@@ -15,6 +15,7 @@ const navItems = [
     { label: "Fahrzeuge (KFZ)", path: "/kfz", modul: "kfz" },
     { label: "Routen", path: "/routen", modul: "route" },
     { label: "Konditionen", path: "/konditionen", modul: "kondition" },
+    { label: "Umschlagpunkte", path: "/umschlag-punkte", modul: "umschlagpunkt" },
   ]},
   { group: "Disposition", items: [
     { label: "Avise", path: "/avise", modul: "avis" },

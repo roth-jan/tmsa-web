@@ -19,6 +19,7 @@ import {
   KonditionenPage,
   DispoOrtePage,
   DispoRegelnPage,
+  UmschlagPunktePage,
 } from "./pages/stammdaten";
 import { AvisPage } from "./pages/AvisPage";
 import { TourPage } from "./pages/TourPage";
@@ -53,6 +54,7 @@ function AppRoutes() {
         <Route path="/kfz" element={<KfzPage />} />
         <Route path="/routen" element={<RoutenPage />} />
         <Route path="/konditionen" element={<KonditionenPage />} />
+        <Route path="/umschlag-punkte" element={<UmschlagPunktePage />} />
         <Route path="/dispo-orte" element={<DispoOrtePage />} />
         <Route path="/dispo-regeln" element={<DispoRegelnPage />} />
         <Route path="/avise" element={<AvisPage />} />

@@ -95,6 +95,15 @@ router.get("/touren", requireAuth, requireRecht("mengenplan", "lesen"), async (r
             },
           },
         },
+        streckenabschnitte: {
+          orderBy: { reihenfolge: "asc" },
+          include: {
+            umschlagPunkt: true,
+            route: true,
+            transportUnternehmer: true,
+            kfz: true,
+          },
+        },
       },
       orderBy: { tourDatum: "asc" },
     });
