@@ -123,23 +123,19 @@ test.describe("Berichte — CSV-Export", () => {
     await expect(page.getByRole("button", { name: "CSV herunterladen" })).toBeVisible();
   });
 
-  test("CSV-Endpoint liefert korrekten Content-Type", async ({ page }) => {
-    const response = await page.evaluate(async () => {
-      const res = await fetch(
-        "http://localhost:3001/api/berichte/touren?datumVon=2026-03-01&datumBis=2026-03-31&format=csv",
-        { credentials: "include" }
-      );
-      return {
-        status: res.status,
-        contentType: res.headers.get("content-type"),
-        contentDisposition: res.headers.get("content-disposition"),
-        bodyLength: (await res.text()).length,
-      };
+  test("CSV-Endpoint liefert korrekten Content-Type", async ({ request }) => {
+    // Login via Playwright request context
+    await request.post("http://localhost:3001/api/auth/login", {
+      data: { benutzername: "admin", passwort: "admin" },
     });
-    expect(response.status).toBe(200);
-    expect(response.contentType).toContain("text/csv");
-    expect(response.contentDisposition).toContain("touren-");
-    expect(response.bodyLength).toBeGreaterThan(10);
+
+    const res = await request.get(
+      "http://localhost:3001/api/berichte/touren?datumVon=2026-03-01&datumBis=2026-03-31&format=csv"
+    );
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("text/csv");
+    expect(res.headers()["content-disposition"]).toContain("touren-");
+    expect((await res.text()).length).toBeGreaterThan(10);
   });
 });
 

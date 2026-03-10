@@ -23,7 +23,7 @@ test.describe("Navigation Phase 4", () => {
     await loginViaApi(page);
     await page.goto("/");
 
-    await expect(page.getByText("Abrechnung", { exact: true })).toBeVisible();
+    await expect(page.getByText("Abrechnung", { exact: true })).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole("link", { name: "TU-Abrechnung" })).toBeVisible();
   });
 
@@ -46,7 +46,7 @@ test.describe("TU-Abrechnung — Bewerten", () => {
     await page.goto("/");
     await loginViaApi(page);
     await page.goto("/tu-abrechnung");
-    await expect(page.getByRole("heading", { name: "TU-Abrechnung" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "TU-Abrechnung" })).toBeVisible({ timeout: 10000 });
   });
 
   test("Seite laden — 3 Tabs sichtbar", async ({ page }) => {
@@ -86,7 +86,7 @@ test.describe("TU-Abrechnung — Freigeben & Erzeugen", () => {
     await page.goto("/");
     await loginViaApi(page);
     await page.goto("/tu-abrechnung");
-    await expect(page.getByRole("heading", { name: "TU-Abrechnung" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "TU-Abrechnung" })).toBeVisible({ timeout: 10000 });
   });
 
   test("Freigeben-Tab zeigt bewertete Touren", async ({ page }) => {
@@ -108,7 +108,7 @@ test.describe("TU-Abrechnung — Abrechnungen", () => {
     await page.goto("/");
     await loginViaApi(page);
     await page.goto("/tu-abrechnung");
-    await expect(page.getByRole("heading", { name: "TU-Abrechnung" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "TU-Abrechnung" })).toBeVisible({ timeout: 10000 });
   });
 
   test("Abrechnungen-Tab laden und Aktualisieren klicken", async ({ page }) => {

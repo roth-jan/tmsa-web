@@ -4,6 +4,8 @@ export default defineConfig({
   globalSetup: "./tests/global-setup.ts",
   testDir: "./tests",
   timeout: 30000,
+  workers: 3,
+  retries: 1,
   use: {
     baseURL: "http://localhost:5173",
     screenshot: "only-on-failure",

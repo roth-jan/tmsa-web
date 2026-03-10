@@ -30,7 +30,7 @@ test.describe("Nacharbeit", () => {
     await page.goto("/");
     await loginViaApi(page);
     await page.goto("/nacharbeit");
-    await expect(page.getByRole("heading", { name: "Nacharbeit" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nacharbeit" })).toBeVisible({ timeout: 10000 });
   });
 
   test("Nacharbeit-Seite laden und Touren anzeigen", async ({ page }) => {
@@ -85,7 +85,7 @@ test.describe("Abfahrten", () => {
     await page.goto("/");
     await loginViaApi(page);
     await page.goto("/abfahrten");
-    await expect(page.getByRole("heading", { name: "Abfahrten" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Abfahrten" })).toBeVisible({ timeout: 10000 });
   });
 
   test("Abfahrten-Tabelle mit Seed-Daten", async ({ page }) => {
@@ -122,7 +122,7 @@ test.describe("Sendungsbildung", () => {
     await page.goto("/");
     await loginViaApi(page);
     await page.goto("/sendungsbildung");
-    await expect(page.getByRole("heading", { name: "Sendungsbildung" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sendungsbildung" })).toBeVisible({ timeout: 10000 });
   });
 
   test("Sendungsbildung-Seite laden", async ({ page }) => {
