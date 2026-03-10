@@ -4,7 +4,6 @@ import {
   Button,
   Group,
   TextInput,
-  PasswordInput,
   Select,
   Checkbox,
   Switch,
@@ -16,6 +15,7 @@ import {
   Text,
   Tabs,
   Table,
+  PasswordInput,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { AgGridReact } from "ag-grid-react";
@@ -680,125 +680,15 @@ function RollenTab() {
 }
 
 // ============================================================
-// Passwort-ändern-Modal
-// ============================================================
-function PasswortAendernModal({
-  opened,
-  onClose,
-}: {
-  opened: boolean;
-  onClose: () => void;
-}) {
-  const [altesPasswort, setAltesPasswort] = useState("");
-  const [neuesPasswort, setNeuesPasswort] = useState("");
-  const [neuesPasswortBestaetigung, setNeuesPasswortBestaetigung] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const reset = () => {
-    setAltesPasswort("");
-    setNeuesPasswort("");
-    setNeuesPasswortBestaetigung("");
-    setError("");
-    setSuccess("");
-  };
-
-  const handleClose = () => {
-    reset();
-    onClose();
-  };
-
-  const speichern = async () => {
-    setError("");
-    setSuccess("");
-
-    if (!altesPasswort || !neuesPasswort) {
-      setError("Altes und neues Passwort erforderlich");
-      return;
-    }
-
-    if (neuesPasswort !== neuesPasswortBestaetigung) {
-      setError("Neue Passwörter stimmen nicht überein");
-      return;
-    }
-
-    if (neuesPasswort.length < 4) {
-      setError("Neues Passwort muss mindestens 4 Zeichen lang sein");
-      return;
-    }
-
-    try {
-      await api("/auth/passwort-aendern", {
-        method: "POST",
-        body: JSON.stringify({ altesPasswort, neuesPasswort }),
-      });
-      setSuccess("Passwort wurde geändert");
-      setAltesPasswort("");
-      setNeuesPasswort("");
-      setNeuesPasswortBestaetigung("");
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  return (
-    <Modal opened={opened} onClose={handleClose} title="Passwort ändern">
-      {error && (
-        <Alert color="red" mb="md">
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert color="green" mb="md">
-          {success}
-        </Alert>
-      )}
-      <Stack>
-        <PasswordInput
-          label="Altes Passwort"
-          required
-          value={altesPasswort}
-          onChange={(e) => setAltesPasswort(e.target.value)}
-        />
-        <PasswordInput
-          label="Neues Passwort"
-          required
-          value={neuesPasswort}
-          onChange={(e) => setNeuesPasswort(e.target.value)}
-        />
-        <PasswordInput
-          label="Neues Passwort bestätigen"
-          required
-          value={neuesPasswortBestaetigung}
-          onChange={(e) => setNeuesPasswortBestaetigung(e.target.value)}
-        />
-        <Group justify="flex-end">
-          <Button variant="default" onClick={handleClose}>
-            Abbrechen
-          </Button>
-          <Button onClick={speichern}>Passwort ändern</Button>
-        </Group>
-      </Stack>
-    </Modal>
-  );
-}
-
-// ============================================================
 // Hauptkomponente
 // ============================================================
 export function BenutzerPage() {
   const { hatRecht } = useAuth();
   const darfRollenSehen = hatRecht("benutzer", "bearbeiten");
-  const [pwModalOpened, { open: openPwModal, close: closePwModal }] = useDisclosure(false);
 
   return (
     <Stack>
-      <Group justify="space-between">
-        <Title order={2}>Benutzer-Verwaltung</Title>
-        <Button variant="light" onClick={openPwModal}>
-          Passwort ändern
-        </Button>
-      </Group>
+      <Title order={2}>Benutzer-Verwaltung</Title>
 
       <Tabs defaultValue="benutzer">
         <Tabs.List>
@@ -816,8 +706,6 @@ export function BenutzerPage() {
           </Tabs.Panel>
         )}
       </Tabs>
-
-      <PasswortAendernModal opened={pwModalOpened} onClose={closePwModal} />
     </Stack>
   );
 }

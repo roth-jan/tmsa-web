@@ -25,7 +25,6 @@ test.describe("Benutzer-Verwaltung", () => {
     await expect(page.getByRole("heading", { name: "Benutzer-Verwaltung" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Benutzer" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Rollen" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Passwort ändern" })).toBeVisible();
   });
 
   test("Benutzer-Tabelle zeigt Seed-Daten", async ({ page }) => {
@@ -120,43 +119,47 @@ test.describe("Rollenverwaltung", () => {
 });
 
 test.describe("Passwort ändern", () => {
+  test("Passwort-ändern-Button im Header für alle User sichtbar", async ({ page }) => {
+    // Disponent (kein benutzer.lesen) sieht den Button trotzdem im Header
+    await page.goto("/");
+    await loginViaApi(page, "dispo", "dispo");
+    await page.goto("/");
+
+    await expect(page.getByRole("button", { name: "Passwort ändern" })).toBeVisible();
+  });
+
   test("Passwort ändern — Erfolg und Re-Login", async ({ page }) => {
     await page.goto("/");
     await loginViaApi(page);
-    await page.goto("/benutzer");
+    await page.goto("/");
 
+    // Button im Header klicken
     await page.getByRole("button", { name: "Passwort ändern" }).click();
     await expect(page.getByRole("heading", { name: "Passwort ändern" })).toBeVisible();
 
-    // Felder ausfüllen — PasswordInput nutzt input[type=password]
+    // Felder ausfüllen
     const modal = page.locator(".mantine-Modal-body");
     const passwordInputs = modal.locator("input[type='password']");
 
-    await passwordInputs.nth(0).fill("admin"); // Altes Passwort
-    await passwordInputs.nth(1).fill("admin-neu"); // Neues Passwort
-    await passwordInputs.nth(2).fill("admin-neu"); // Bestätigung
+    await passwordInputs.nth(0).fill("admin");
+    await passwordInputs.nth(1).fill("admin-neu");
+    await passwordInputs.nth(2).fill("admin-neu");
 
-    // "Passwort ändern" Button im Modal klicken
     await modal.getByRole("button", { name: "Passwort ändern" }).click();
-
     await expect(page.getByText("Passwort wurde geändert")).toBeVisible({ timeout: 10000 });
 
     // Modal schließen
     await modal.getByRole("button", { name: "Abbrechen" }).click();
 
-    // Abmelden
+    // Abmelden + Re-Login mit neuem Passwort
     await page.getByRole("button", { name: "Abmelden" }).click();
     await page.goto("/");
-
-    // Re-Login mit neuem Passwort
     await loginViaApi(page, "admin", "admin-neu");
     await page.goto("/");
     await expect(page.getByText("Willkommen, Thomas Berger")).toBeVisible({ timeout: 10000 });
 
-    // Passwort wieder zurücksetzen für andere Tests
-    await page.goto("/benutzer");
+    // Passwort zurücksetzen
     await page.getByRole("button", { name: "Passwort ändern" }).click();
-
     const modal2 = page.locator(".mantine-Modal-body");
     const pwInputs2 = modal2.locator("input[type='password']");
     await pwInputs2.nth(0).fill("admin-neu");

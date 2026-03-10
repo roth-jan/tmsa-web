@@ -1,7 +1,9 @@
-import { AppShell, NavLink, Group, Title, Text, Button, Burger } from "@mantine/core";
+import { useState } from "react";
+import { AppShell, NavLink, Group, Title, Text, Button, Burger, Modal, PasswordInput, Stack, Alert } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { api } from "../api/client";
 
 const navItems = [
   { label: "Dashboard", path: "/" },
@@ -46,6 +48,43 @@ export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [opened, { toggle }] = useDisclosure();
+  const [pwModal, { open: openPwModal, close: closePwModal }] = useDisclosure();
+  const [pwForm, setPwForm] = useState({ alt: "", neu: "", bestaetigung: "" });
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState("");
+
+  const pwReset = () => {
+    setPwForm({ alt: "", neu: "", bestaetigung: "" });
+    setPwError("");
+    setPwSuccess("");
+  };
+
+  const pwSpeichern = async () => {
+    setPwError("");
+    setPwSuccess("");
+    if (!pwForm.alt || !pwForm.neu) {
+      setPwError("Altes und neues Passwort erforderlich");
+      return;
+    }
+    if (pwForm.neu !== pwForm.bestaetigung) {
+      setPwError("Neue Passwörter stimmen nicht überein");
+      return;
+    }
+    if (pwForm.neu.length < 4) {
+      setPwError("Neues Passwort muss mindestens 4 Zeichen lang sein");
+      return;
+    }
+    try {
+      await api("/auth/passwort-aendern", {
+        method: "POST",
+        body: JSON.stringify({ altesPasswort: pwForm.alt, neuesPasswort: pwForm.neu }),
+      });
+      setPwSuccess("Passwort wurde geändert");
+      setPwForm({ alt: "", neu: "", bestaetigung: "" });
+    } catch (err: any) {
+      setPwError(err.message);
+    }
+  };
 
   return (
     <AppShell
@@ -63,6 +102,9 @@ export function AppLayout() {
             <Text size="sm" c="dimmed">
               {user?.vorname} {user?.nachname} ({user?.niederlassung})
             </Text>
+            <Button variant="subtle" size="xs" onClick={() => { pwReset(); openPwModal(); }}>
+              Passwort ändern
+            </Button>
             <Button variant="subtle" size="xs" onClick={logout}>
               Abmelden
             </Button>
@@ -104,6 +146,20 @@ export function AppLayout() {
       <AppShell.Main>
         <Outlet />
       </AppShell.Main>
+
+      <Modal opened={pwModal} onClose={closePwModal} title="Passwort ändern">
+        {pwError && <Alert color="red" mb="md">{pwError}</Alert>}
+        {pwSuccess && <Alert color="green" mb="md">{pwSuccess}</Alert>}
+        <Stack>
+          <PasswordInput label="Altes Passwort" required value={pwForm.alt} onChange={(e) => setPwForm({ ...pwForm, alt: e.target.value })} />
+          <PasswordInput label="Neues Passwort" required value={pwForm.neu} onChange={(e) => setPwForm({ ...pwForm, neu: e.target.value })} />
+          <PasswordInput label="Neues Passwort bestätigen" required value={pwForm.bestaetigung} onChange={(e) => setPwForm({ ...pwForm, bestaetigung: e.target.value })} />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={closePwModal}>Abbrechen</Button>
+            <Button onClick={pwSpeichern}>Passwort ändern</Button>
+          </Group>
+        </Stack>
+      </Modal>
     </AppShell>
   );
 }
