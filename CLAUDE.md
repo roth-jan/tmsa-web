@@ -176,6 +176,14 @@ npx playwright test
 - [x] PDF-Buttons in AbfahrtPage + TuAbrechnungPage (window.open → neuer Tab)
 - [x] 4 Playwright-Tests, **81/81 grün + 2 skipped** (gesamt 83)
 
+### Benutzerverwaltung: Passwort + Rollenverwaltung ✅
+- [x] POST /api/auth/passwort-aendern (eigenes Passwort ändern, bcrypt verify+hash)
+- [x] Rollen-CRUD: POST/PUT/DELETE /api/benutzer/rollen + GET /api/benutzer/rechte
+- [x] BenutzerPage: Tabs (Benutzer + Rollen) statt Single-View
+- [x] Passwort-ändern-Modal (alle User, altes PW + neues PW + Bestätigung)
+- [x] Rollen-Tab: AG Grid + Rechte-Matrix-Modal (Modul × Aktion Checkboxen)
+- [x] 8 Playwright-Tests, **89/89 grün + 2 skipped** (gesamt 91)
+
 ### Offen / Next Steps
 - [ ] Weitere EDI (VDA4927, DESADV, IFCSUM, IFTSTA)
 - [ ] Forecast
