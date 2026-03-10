@@ -87,7 +87,7 @@ test.describe("Avise", () => {
 
     // Neues Avis
     await page.getByRole("button", { name: "Neues Avis" }).click();
-    await expect(page.getByText("Neues Avis")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Neues Avis" })).toBeVisible();
     await page.getByLabel("Avis-Nummer").fill(avisNr);
     await page.getByLabel("Ladedatum").fill("2026-03-15");
 
@@ -155,7 +155,7 @@ test.describe("Touren", () => {
     const tourNr = `T-TEST-${Date.now().toString().slice(-6)}`;
 
     await page.getByRole("button", { name: "Neue Tour" }).click();
-    await expect(page.getByText("Neue Tour")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Neue Tour" })).toBeVisible();
     await page.getByLabel("Tour-Nummer").fill(tourNr);
     await page.getByLabel("Tour-Datum").fill("2026-03-15");
     await selectOption(page, "Niederlassung", "Gersthofen");
