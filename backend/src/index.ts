@@ -15,6 +15,7 @@ import sendungRouter from "./routes/sendung";
 import tuabrechnungRouter from "./routes/tuabrechnung";
 import berichteRouter from "./routes/berichte";
 import gebrocheneVerkehreRouter from "./routes/gebrochene-verkehre";
+import dashboardRouter from "./routes/dashboard";
 import {
   niederlassungRouter,
   oemRouter,
@@ -76,6 +77,7 @@ app.use("/api/sendungen", sendungRouter);
 app.use("/api/tu-abrechnung", tuabrechnungRouter);
 app.use("/api/berichte", berichteRouter);
 app.use("/api/gebrochene-verkehre", gebrocheneVerkehreRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {
