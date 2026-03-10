@@ -150,7 +150,8 @@ npx playwright test
 - [x] Touren-Status RingProgress (offen/disponiert/abgefahren/abgeschlossen)
 - [x] Tagesübersicht (Abfahrten, Sendungen, Gebrochene, Monatskosten)
 - [x] Letzte-Touren AG Grid (5 neueste Touren)
-- [x] 6 Playwright-Tests, 71/74 gesamt grün (3+6 pre-existing Phase 4/6 Failures)
+- [x] 6 Playwright-Tests, **74/74 gesamt grün**
+- [x] Test-Isolation: globalSetup mit DB-Reset (TRUNCATE + Re-Seed)
 
 ### Phase 7: EDI + Erweiterungen
 - [ ] VDA 4913 (BMW, Daimler, VW, Porsche, MAN)
