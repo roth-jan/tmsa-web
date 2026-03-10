@@ -153,6 +153,14 @@ npx playwright test
 - [x] 6 Playwright-Tests, **74/74 gesamt grün**
 - [x] Test-Isolation: globalSetup mit DB-Reset (TRUNCATE + Re-Seed)
 
+### Docker Production Deployment ✅
+- [x] Backend Dockerfile (Node 22 Alpine + tsx)
+- [x] Frontend Dockerfile (multi-stage: Vite build → nginx)
+- [x] nginx.conf (API reverse proxy + SPA routing + asset caching)
+- [x] docker-compose.yml (db + backend + frontend, healthchecks)
+- [x] Production-Konfiguration (CORS_ORIGIN, SESSION_SECRET, VITE_API_URL)
+- [x] GitHub Actions CI/CD Pipeline (PostgreSQL + Playwright + Docker build)
+
 ### Phase 7: EDI + Erweiterungen
 - [ ] VDA 4913 (BMW, Daimler, VW, Porsche, MAN)
 - [ ] Weitere EDI (VDA4927, DESADV, IFCSUM, IFTSTA)
