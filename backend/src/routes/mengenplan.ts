@@ -132,6 +132,14 @@ router.post("/zuweisen", requireAuth, requireRecht("mengenplan", "bearbeiten"), 
       data: { tourId, status: 1 },
     });
 
+    // Tour auf "disponiert" setzen wenn Zeilen zugewiesen wurden
+    if (result.count > 0) {
+      await prisma.tour.update({
+        where: { id: tourId },
+        data: { status: "disponiert" },
+      });
+    }
+
     return res.json({ data: { zugewiesen: result.count } });
   } catch (error) {
     console.error("Mengenplan zuweisen:", error);

@@ -150,7 +150,7 @@ npx playwright test
 - [x] Touren-Status RingProgress (offen/disponiert/abgefahren/abgeschlossen)
 - [x] Tagesübersicht (Abfahrten, Sendungen, Gebrochene, Monatskosten)
 - [x] Letzte-Touren AG Grid (5 neueste Touren)
-- [x] 6 Playwright-Tests, **74/74 gesamt grün**
+- [x] 6 Playwright-Tests, **74/74 → 79/79 gesamt grün** (inkl. EDI Simulator)
 - [x] Test-Isolation: globalSetup mit DB-Reset (TRUNCATE + Re-Seed)
 
 ### Docker Production Deployment ✅
@@ -161,8 +161,12 @@ npx playwright test
 - [x] Production-Konfiguration (CORS_ORIGIN, SESSION_SECRET, VITE_API_URL)
 - [x] GitHub Actions CI/CD Pipeline (PostgreSQL + Playwright + Docker build)
 
-### Phase 7: EDI + Erweiterungen
-- [ ] VDA 4913 (BMW, Daimler, VW, Porsche, MAN)
+### Phase 7: EDI Simulator ✅
+- [x] VDA 4913 Simulator (EDI Eingang nachstellen)
+- [x] 4 OEM-Templates (BMW München, BMW Dingolfing, Daimler Sindelfingen, VW Wolfsburg)
+- [x] VDA 4913 Nachrichtenformat (511/512/513/514/519 Satzarten)
+- [x] Import → bestehender POST /api/avise (kein neuer Backend-Endpoint)
+- [x] 4 Playwright-Tests, **79/79 gesamt grün**
 - [ ] Weitere EDI (VDA4927, DESADV, IFCSUM, IFTSTA)
 - [ ] Forecast
 - [ ] Erweiterte Berichte (OEM-spezifisch, Ausfallfrachten)

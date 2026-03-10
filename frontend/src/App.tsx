@@ -29,6 +29,7 @@ import { AbfahrtPage } from "./pages/AbfahrtPage";
 import { SendungsbildungPage } from "./pages/SendungsbildungPage";
 import { TuAbrechnungPage } from "./pages/TuAbrechnungPage";
 import { BerichtePage } from "./pages/BerichtePage";
+import { EdiSimulatorPage } from "./pages/EdiSimulatorPage";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -65,6 +66,7 @@ function AppRoutes() {
         <Route path="/sendungsbildung" element={<SendungsbildungPage />} />
         <Route path="/tu-abrechnung" element={<TuAbrechnungPage />} />
         <Route path="/berichte" element={<BerichtePage />} />
+        <Route path="/edi-simulator" element={<EdiSimulatorPage />} />
         <Route path="/benutzer" element={<BenutzerPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>

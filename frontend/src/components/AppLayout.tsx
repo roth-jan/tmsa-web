@@ -23,6 +23,7 @@ const navItems = [
     { label: "Mengenplan", path: "/mengenplan", modul: "mengenplan" },
     { label: "Dispo-Orte", path: "/dispo-orte", modul: "dispoort" },
     { label: "Dispo-Regeln", path: "/dispo-regeln", modul: "disporegel" },
+    { label: "EDI Simulator", path: "/edi-simulator", modul: "avis" },
   ]},
   { group: "Operativ", items: [
     { label: "Abfahrten", path: "/abfahrten", modul: "abfahrt" },
