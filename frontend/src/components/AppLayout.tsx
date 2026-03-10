@@ -74,7 +74,7 @@ export function AppLayout() {
           if ("group" in item) {
             return (
               <NavLink key={i} label={item.group} defaultOpened>
-                {item.items
+                {item.items!
                   .filter((sub) => !sub.modul || hatRecht(sub.modul, "lesen"))
                   .map((sub) => (
                   <NavLink

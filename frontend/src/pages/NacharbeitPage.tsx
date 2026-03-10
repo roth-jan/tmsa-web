@@ -40,17 +40,17 @@ const tourColumns: ColDef[] = [
   {
     field: "quittung", headerName: "Q", width: 50,
     cellRenderer: (p: any) => p.value ? "✓" : "",
-    cellStyle: (p: any) => p.value ? { color: "green", fontWeight: "bold" } : {},
+    cellStyle: (p: any) => p.value ? { color: "green", fontWeight: "bold" } : null,
   },
   {
     field: "istLeerfahrt", headerName: "LF", width: 50,
     cellRenderer: (p: any) => p.value ? "✓" : "",
-    cellStyle: (p: any) => p.value ? { color: "gray" } : {},
+    cellStyle: (p: any) => p.value ? { color: "gray" } : null,
   },
   {
     field: "abrechnungsStopp", headerName: "AS", width: 50,
     cellRenderer: (p: any) => p.value ? "✗" : "",
-    cellStyle: (p: any) => p.value ? { color: "red", fontWeight: "bold" } : {},
+    cellStyle: (p: any) => p.value ? { color: "red", fontWeight: "bold" } : null,
   },
   { field: "status", headerName: "Status", width: 100 },
 ];

@@ -11,6 +11,37 @@ services:
       - "5432:5432"
     volumes:
       - tmsa-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tmsa"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: tmsa-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://tmsa:tmsa2026@db:5432/tmsa
+      SESSION_SECRET: ${SESSION_SECRET:-tmsa-production-secret-change-me}
+      CORS_ORIGIN: http://localhost
+      NODE_ENV: production
+      PORT: 3001
+    # Port nur intern für nginx erreichbar, nicht nach außen exposen
+    # ports:
+    #   - "3001:3001"
+
+  frontend:
+    build: ./frontend
+    container_name: tmsa-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
 
 volumes:
   tmsa-pgdata:

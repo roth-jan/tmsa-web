@@ -107,7 +107,7 @@ export function SendungsbildungPage() {
       };
       if (selectedBorderoId) body.borderoId = selectedBorderoId;
 
-      const res = await api("/sendungen/aus-artikelzeilen", {
+      await api("/sendungen/aus-artikelzeilen", {
         method: "POST",
         body: JSON.stringify(body),
       });

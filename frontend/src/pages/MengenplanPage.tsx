@@ -114,8 +114,8 @@ export function MengenplanPage() {
   const [nlOpts, setNlOpts] = useState<any[]>([]);
   const [routenOpts, setRoutenOpts] = useState<any[]>([]);
   const [uspOpts, setUspOpts] = useState<any[]>([]);
-  const [tuOpts, setTuOpts] = useState<any[]>([]);
-  const [kfzOpts, setKfzOpts] = useState<any[]>([]);
+  const [_tuOpts, setTuOpts] = useState<any[]>([]);
+  const [_kfzOpts, setKfzOpts] = useState<any[]>([]);
 
   // Neue Tour Modal
   const [tourModalOpen, { open: openTourModal, close: closeTourModal }] = useDisclosure(false);

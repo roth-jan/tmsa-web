@@ -37,7 +37,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   credentials: true,
   exposedHeaders: ["Content-Disposition"],
 }));
@@ -47,7 +47,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // true in production mit HTTPS
+    secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     maxAge: 8 * 60 * 60 * 1000, // 8 Stunden
   },
