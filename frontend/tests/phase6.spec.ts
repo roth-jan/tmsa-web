@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-async function loginViaApi(page: any, user = "admin", pass = "admin") {
+async function loginViaApi(page: any, user = "admin", pass = "Admin1!") {
   await page.evaluate(
     async ({ u, p }: { u: string; p: string }) => {
       await fetch("http://localhost:3001/api/auth/login", {
@@ -59,8 +59,9 @@ test.describe("Umschlagpunkte Stammdaten", () => {
 
     // Aufräumen
     await page.getByText(name).click();
-    page.on("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Löschen" }).click();
+    // ConfirmModal bestätigen
+    await page.getByRole("dialog").getByRole("button", { name: "Löschen" }).click();
     await expect(page.getByText(name)).not.toBeVisible({ timeout: 5000 });
   });
 });
@@ -120,12 +121,13 @@ test.describe("Tour brechen", () => {
   });
 
   test("Tour brechen mit USP erstellt VL + NL Abschnitte", async ({ page }) => {
+    // Benutze T-2026-005 (dedizierte Tour für diesen Test, retry-safe)
     await page.getByLabel("Datum von").fill("2026-03-01");
     await page.getByLabel("Datum bis").fill("2026-03-31");
     await page.getByRole("button", { name: "Aktualisieren" }).click();
 
-    await expect(page.getByText("T-2026-001")).toBeVisible({ timeout: 10000 });
-    await page.getByText("T-2026-001").click();
+    await expect(page.getByText("T-2026-005")).toBeVisible({ timeout: 10000 });
+    await page.getByText("T-2026-005").click();
 
     await page.getByRole("button", { name: "Tour brechen" }).click();
     await expect(page.getByText("Tour brechen", { exact: false })).toBeVisible();
@@ -144,12 +146,12 @@ test.describe("Tour brechen", () => {
     await page.getByLabel("Datum bis").fill("2026-03-31");
     await page.getByRole("button", { name: "Aktualisieren" }).click();
 
-    // T-2026-001 sollte jetzt GV-Badge haben
-    await expect(page.getByText("T-2026-001")).toBeVisible({ timeout: 10000 });
-    await page.getByText("T-2026-001").click();
+    // T-2026-005 sollte jetzt GV-Badge haben
+    await expect(page.getByText("T-2026-005")).toBeVisible({ timeout: 10000 });
+    await page.getByText("T-2026-005").click();
 
     // Streckenabschnitte sollten sichtbar sein
-    await expect(page.getByText("Streckenabschnitte von T-2026-001")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Streckenabschnitte von T-2026-005")).toBeVisible({ timeout: 5000 });
     await expect(page.getByText("Continental Hannover")).toBeVisible();
   });
 });
@@ -166,40 +168,42 @@ test.describe("Zusammenführen", () => {
   });
 
   test("Zusammenführen-Button auf gebrochener Tour sichtbar", async ({ page }) => {
+    // Benutze T-2026-006 (dedizierte Tour für Zusammenführen-Test, retry-safe)
     await page.getByLabel("Datum von").fill("2026-03-01");
     await page.getByLabel("Datum bis").fill("2026-03-31");
     await page.getByRole("button", { name: "Aktualisieren" }).click();
 
-    await expect(page.getByText("T-2026-004")).toBeVisible({ timeout: 10000 });
-    await page.getByText("T-2026-004").click();
+    await expect(page.getByText("T-2026-006")).toBeVisible({ timeout: 10000 });
+    await page.getByText("T-2026-006").click();
 
     await expect(page.getByRole("button", { name: "Zusammenführen" })).toBeVisible({ timeout: 3000 });
   });
 
   test("Zusammenführen entfernt Abschnitte", async ({ page }) => {
+    // Benutze T-2026-006 (dedizierte Tour für Zusammenführen-Test, retry-safe)
     await page.getByLabel("Datum von").fill("2026-03-01");
     await page.getByLabel("Datum bis").fill("2026-03-31");
     await page.getByRole("button", { name: "Aktualisieren" }).click();
 
-    await expect(page.getByText("T-2026-004")).toBeVisible({ timeout: 10000 });
-    await page.getByText("T-2026-004").click();
+    await expect(page.getByText("T-2026-006")).toBeVisible({ timeout: 10000 });
+    await page.getByText("T-2026-006").click();
 
     // Streckenabschnitte sichtbar
-    await expect(page.getByText("Streckenabschnitte von T-2026-004")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Streckenabschnitte von T-2026-006")).toBeVisible({ timeout: 5000 });
 
-    // Confirm-Dialog akzeptieren
-    page.on("dialog", (dialog) => dialog.accept());
+    // ConfirmModal bestätigen
     await page.getByRole("button", { name: "Zusammenführen" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Aufheben" }).click();
 
     // Nach Zusammenführung: Aktualisieren und prüfen
     await page.waitForTimeout(2000);
     await page.getByRole("button", { name: "Aktualisieren" }).click();
 
-    await expect(page.getByText("T-2026-004")).toBeVisible({ timeout: 10000 });
-    await page.getByText("T-2026-004").click();
+    await expect(page.getByText("T-2026-006")).toBeVisible({ timeout: 10000 });
+    await page.getByText("T-2026-006").click();
 
     // Sollte jetzt Tour-Zeilen zeigen, nicht Streckenabschnitte
-    await expect(page.getByText("Zeilen von T-2026-004")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Zeilen von T-2026-006")).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -209,7 +213,7 @@ test.describe("Zusammenführen", () => {
 test.describe("Berechtigungen Gebrochene Verkehre", () => {
   test("Disponent sieht Umschlagpunkte im Menü", async ({ page }) => {
     await page.goto("/");
-    await loginViaApi(page, "dispo", "dispo");
+    await loginViaApi(page, "dispo", "Dispo1!");
     await page.goto("/");
 
     await expect(page.getByRole("link", { name: "Umschlagpunkte" })).toBeVisible();
@@ -217,7 +221,7 @@ test.describe("Berechtigungen Gebrochene Verkehre", () => {
 
   test("Disponent kann Streckenabschnitte sehen", async ({ page }) => {
     await page.goto("/");
-    await loginViaApi(page, "dispo", "dispo");
+    await loginViaApi(page, "dispo", "Dispo1!");
     await page.goto("/mengenplan");
 
     await page.getByLabel("Datum von").fill("2026-03-01");
@@ -227,26 +231,15 @@ test.describe("Berechtigungen Gebrochene Verkehre", () => {
     // Warte auf Touren-Grid
     await expect(page.locator(".ag-row").first()).toBeVisible({ timeout: 10000 });
 
-    // Suche gebrochene Tour: T-2026-001 (wurde in vorherigem Test gebrochen)
-    // oder T-2026-004 (Seed-GV, falls Zusammenführen-Test noch nicht lief)
-    // Klicke auf die erste Tour die einen GV-Span hat
-    const t4 = page.getByRole("row").filter({ hasText: "T-2026-004" });
-    const t1 = page.getByRole("row").filter({ hasText: "T-2026-001" });
+    // T-2026-004 (Seed-GV) — kann außerhalb des sichtbaren Bereichs sein (AG Grid Virtual Scroll)
+    // Scrolle im Grid nach unten um T-2026-004 sichtbar zu machen
+    const gridBody = page.locator(".ag-body-viewport").last();
+    await gridBody.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+    await page.waitForTimeout(500);
 
-    // Versuche T-2026-004 (Seed-GV)
-    if (await t4.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await t4.click();
-      const hatAbschnitte = await page.getByText(/Streckenabschnitte von T-2026-004/).isVisible({ timeout: 3000 }).catch(() => false);
-      if (hatAbschnitte) {
-        await expect(page.getByText("Streckenabschnitte von T-2026-004")).toBeVisible();
-        return;
-      }
-    }
+    await expect(page.getByText("T-2026-004")).toBeVisible({ timeout: 5000 });
+    await page.getByText("T-2026-004").click();
 
-    // Fallback: T-2026-001 (durch vorherigen Test gebrochen)
-    if (await t1.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await t1.click();
-      await expect(page.getByText(/Streckenabschnitte von T-2026/).first()).toBeVisible({ timeout: 5000 });
-    }
+    await expect(page.getByText("Streckenabschnitte von T-2026-004")).toBeVisible({ timeout: 5000 });
   });
 });

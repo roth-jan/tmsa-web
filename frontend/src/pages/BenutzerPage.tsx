@@ -23,6 +23,7 @@ import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from "ag-grid-community";
 import { api } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import { ConfirmModal, useConfirm } from "../components/ConfirmModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -99,6 +100,7 @@ function BenutzerTab() {
   const [error, setError] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedRow, setSelectedRow] = useState<any>(null);
+  const { modalProps: confirmModalProps, openConfirm } = useConfirm();
 
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -228,14 +230,21 @@ function BenutzerTab() {
     }
   };
 
-  const loeschen = async (id: string) => {
-    if (!confirm("Benutzer wirklich deaktivieren?")) return;
-    try {
-      await api(`/benutzer/${id}`, { method: "DELETE" });
-      laden();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const loeschen = (id: string) => {
+    openConfirm({
+      title: "Benutzer deaktivieren",
+      message: "Soll dieser Benutzer wirklich deaktiviert werden?",
+      confirmLabel: "Deaktivieren",
+      color: "orange",
+      onConfirm: async () => {
+        try {
+          await api(`/benutzer/${id}`, { method: "DELETE" });
+          laden();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   const toggleRolle = (rolleId: string) => {
@@ -336,6 +345,7 @@ function BenutzerTab() {
             required={!editId}
             value={form.passwort}
             onChange={(e) => setForm({ ...form, passwort: e.target.value })}
+            description="Min. 8 Zeichen, 1 Großbuchstabe, 1 Zahl, 1 Sonderzeichen"
           />
           <Select
             label="Niederlassung"
@@ -389,6 +399,8 @@ function BenutzerTab() {
           </Group>
         </Stack>
       </Modal>
+
+      <ConfirmModal {...confirmModalProps} />
     </>
   );
 }
@@ -407,6 +419,7 @@ function RollenTab() {
   const [success, setSuccess] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedRow, setSelectedRow] = useState<any>(null);
+  const { modalProps: confirmModalProps, openConfirm } = useConfirm();
 
   const [editId, setEditId] = useState<string | null>(null);
   const [rolleForm, setRolleForm] = useState({
@@ -495,16 +508,21 @@ function RollenTab() {
     }
   };
 
-  const rolleLoeschen = async (id: string) => {
-    if (!confirm("Rolle wirklich löschen?")) return;
-    try {
-      await api(`/benutzer/rollen/${id}`, { method: "DELETE" });
-      setSelectedRow(null);
-      setSuccess("Rolle gelöscht");
-      laden();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const rolleLoeschen = (id: string) => {
+    openConfirm({
+      title: "Rolle löschen",
+      message: "Soll diese Rolle wirklich gelöscht werden?",
+      onConfirm: async () => {
+        try {
+          await api(`/benutzer/rollen/${id}`, { method: "DELETE" });
+          setSelectedRow(null);
+          setSuccess("Rolle gelöscht");
+          laden();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   const toggleRecht = (rechtId: string) => {
@@ -675,6 +693,8 @@ function RollenTab() {
           </Group>
         </Stack>
       </Modal>
+
+      <ConfirmModal {...confirmModalProps} />
     </>
   );
 }

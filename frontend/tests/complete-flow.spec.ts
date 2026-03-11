@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-async function loginViaApi(page: any, user = "admin", pass = "admin") {
+async function loginViaApi(page: any, user = "admin", pass = "Admin1!") {
   await page.evaluate(
     async ({ u, p }: { u: string; p: string }) => {
       await fetch("http://localhost:3001/api/auth/login", {
@@ -155,7 +155,7 @@ test.describe("Kompletter TMSA Durchlauf", () => {
 
       // TU + Kondition setzen
       await selectOption(page, "TU", "Hartmann");
-      await selectOption(page, "Kondition", "Hartmann");
+      await selectOption(page, "Kondition", "Hartmann Standard BMW");
 
       // Kilometer
       await page.getByLabel("Last-km").fill("100");

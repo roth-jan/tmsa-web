@@ -9,6 +9,7 @@ import type { ColDef, RowSelectedEvent } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from "ag-grid-community";
 import { api } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import { ConfirmModal, useConfirm } from "../components/ConfirmModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -21,7 +22,7 @@ const offeneZeilenCols: ColDef[] = [
   },
   { field: "masseinheit", headerName: "ME", width: 60 },
   {
-    field: "gewicht", headerName: "Gew.", width: 90, type: "numericColumn",
+    field: "gewicht", headerName: "Gewicht (kg)", headerTooltip: "Gewicht in Kilogramm", width: 100, type: "numericColumn",
     valueFormatter: (p: any) => p.value ? Number(p.value).toLocaleString("de-DE") : "",
   },
   { field: "gutArt", headerName: "Gutart", width: 90 },
@@ -47,7 +48,7 @@ const tourenCols: ColDef[] = [
     valueFormatter: (p: any) => p.value ? new Date(p.value).toLocaleDateString("de-DE") : "",
   },
   { field: "kfz.kennzeichen", headerName: "KFZ", width: 120 },
-  { field: "transportUnternehmer.kurzbezeichnung", headerName: "TU", width: 80 },
+  { field: "transportUnternehmer.kurzbezeichnung", headerName: "TU", headerTooltip: "Transport-Unternehmer", width: 80 },
   { field: "_count.artikelzeilen", headerName: "#", width: 60 },
   { field: "status", headerName: "Status", width: 90 },
 ];
@@ -76,7 +77,7 @@ const streckenabschnitteCols: ColDef[] = [
   { field: "vonBeschreibung", headerName: "Von", flex: 1 },
   { field: "nachBeschreibung", headerName: "Nach", flex: 1 },
   { field: "umschlagPunkt.name", headerName: "USP", width: 130 },
-  { field: "transportUnternehmer.kurzbezeichnung", headerName: "TU", width: 80 },
+  { field: "transportUnternehmer.kurzbezeichnung", headerName: "TU", headerTooltip: "Transport-Unternehmer", width: 80 },
   { field: "kfz.kennzeichen", headerName: "KFZ", width: 110 },
   { field: "route.routennummer", headerName: "Route", width: 100 },
   { field: "status", headerName: "Status", width: 90 },
@@ -104,6 +105,7 @@ export function MengenplanPage() {
   const [selectedOffene, setSelectedOffene] = useState<any[]>([]);
   const [selectedTourZeilen, setSelectedTourZeilen] = useState<any[]>([]);
   const [error, setError] = useState("");
+  const { modalProps, openConfirm } = useConfirm();
 
   // Streckenabschnitte (gebrochene Verkehre)
   const [abschnitte, setAbschnitte] = useState<any[]>([]);
@@ -267,17 +269,25 @@ export function MengenplanPage() {
     }
   };
 
-  const tourZusammenfuehren = async () => {
+  const tourZusammenfuehren = () => {
     if (!selectedTour) return;
-    if (!confirm("Brechung wirklich aufheben? Alle Streckenabschnitte werden gelöscht.")) return;
-    try {
-      await api(`/gebrochene-verkehre/touren/${selectedTour.id}/zusammenfuehren`, {
-        method: "DELETE",
-      });
-      aktualisieren();
-    } catch (err: any) {
-      setError(err.message);
-    }
+    const tourId = selectedTour.id;
+    openConfirm({
+      title: "Brechung aufheben",
+      message: "Soll die Brechung wirklich aufgehoben werden? Alle Streckenabschnitte werden gelöscht.",
+      confirmLabel: "Aufheben",
+      color: "orange",
+      onConfirm: async () => {
+        try {
+          await api(`/gebrochene-verkehre/touren/${tourId}/zusammenfuehren`, {
+            method: "DELETE",
+          });
+          aktualisieren();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   const ladeAbschnitte = async (tourId: string) => {
@@ -485,6 +495,8 @@ export function MengenplanPage() {
           </Group>
         </Stack>
       </Modal>
+
+      <ConfirmModal {...modalProps} />
     </Stack>
   );
 }

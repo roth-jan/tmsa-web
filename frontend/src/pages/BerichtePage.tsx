@@ -12,7 +12,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const EUR = (v: any) => v != null ? `${Number(v).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : "";
 const datumFmt = (p: any) => p.value ? new Date(p.value).toLocaleDateString("de-DE") : "";
 const zeitFmt = (p: any) => p.value ? new Date(p.value).toLocaleString("de-DE") : "";
-const API_BASE = "http://localhost:3001/api";
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 function csvUrl(endpoint: string, params: Record<string, string>) {
   const qs = new URLSearchParams({ ...params, format: "csv" }).toString();
@@ -99,6 +99,7 @@ function BerichtTab({ endpoint, columns, extraParams = {}, datumFeld = "datum" }
           rowData={daten}
           columnDefs={columns}
           defaultColDef={{ sortable: true, filter: true, resizable: true }}
+          overlayNoRowsTemplate='Keine Daten vorhanden. Bitte "Laden" klicken.'
         />
       </div>
 

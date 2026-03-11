@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-async function loginViaApi(page: any, user = "admin", pass = "admin") {
+async function loginViaApi(page: any, user = "admin", pass = "Admin1!") {
   await page.evaluate(
     async ({ u, p }: { u: string; p: string }) => {
       await fetch("http://localhost:3001/api/auth/login", {
@@ -42,7 +42,7 @@ test.describe("Benutzer-Verwaltung", () => {
     await page.getByLabel("Vorname").fill("Test");
     await page.getByLabel("Nachname").fill("Nutzer");
     await page.getByLabel("E-Mail").fill("test@example.com");
-    await page.getByLabel("Passwort").fill("test1234");
+    await page.getByLabel("Passwort").fill("Test1234!");
 
     await page.getByRole("button", { name: "Speichern" }).click();
 
@@ -80,8 +80,9 @@ test.describe("Benutzer-Verwaltung", () => {
       await testRow.click();
       await expect(page.getByRole("button", { name: "Deaktivieren" })).toBeVisible();
 
-      page.on("dialog", (d) => d.accept());
       await page.getByRole("button", { name: "Deaktivieren" }).click();
+      // ConfirmModal bestätigen
+      await page.getByRole("dialog").getByRole("button", { name: "Deaktivieren" }).click();
     }
   });
 });
@@ -122,15 +123,38 @@ test.describe("Passwort ändern", () => {
   test("Passwort-ändern-Button im Header für alle User sichtbar", async ({ page }) => {
     // Disponent (kein benutzer.lesen) sieht den Button trotzdem im Header
     await page.goto("/");
-    await loginViaApi(page, "dispo", "dispo");
+    await loginViaApi(page, "dispo", "Dispo1!");
     await page.goto("/");
 
     await expect(page.getByRole("button", { name: "Passwort ändern" })).toBeVisible();
   });
 
   test("Passwort ändern — Erfolg und Re-Login", async ({ page }) => {
+    // Eigenen Test-User anlegen (damit admin-PW nicht geändert wird → parallele Tests brechen sonst)
     await page.goto("/");
     await loginViaApi(page);
+    await page.goto("/");
+
+    // User per API anlegen
+    await page.evaluate(async () => {
+      await fetch("http://localhost:3001/api/benutzer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          benutzername: "pwtest",
+          vorname: "PW",
+          nachname: "Tester",
+          passwort: "PwTest1!",
+        }),
+      });
+    });
+
+    // Abmelden, als pwtest einloggen
+    await page.evaluate(async () => {
+      await fetch("http://localhost:3001/api/auth/logout", { method: "POST", credentials: "include" });
+    });
+    await loginViaApi(page, "pwtest", "PwTest1!");
     await page.goto("/");
 
     // Button im Header klicken
@@ -141,9 +165,9 @@ test.describe("Passwort ändern", () => {
     const modal = page.locator(".mantine-Modal-body");
     const passwordInputs = modal.locator("input[type='password']");
 
-    await passwordInputs.nth(0).fill("admin");
-    await passwordInputs.nth(1).fill("admin-neu");
-    await passwordInputs.nth(2).fill("admin-neu");
+    await passwordInputs.nth(0).fill("PwTest1!");
+    await passwordInputs.nth(1).fill("PwTest-Neu1!");
+    await passwordInputs.nth(2).fill("PwTest-Neu1!");
 
     await modal.getByRole("button", { name: "Passwort ändern" }).click();
     await expect(page.getByText("Passwort wurde geändert")).toBeVisible({ timeout: 10000 });
@@ -154,18 +178,8 @@ test.describe("Passwort ändern", () => {
     // Abmelden + Re-Login mit neuem Passwort
     await page.getByRole("button", { name: "Abmelden" }).click();
     await page.goto("/");
-    await loginViaApi(page, "admin", "admin-neu");
+    await loginViaApi(page, "pwtest", "PwTest-Neu1!");
     await page.goto("/");
-    await expect(page.getByText("Willkommen, Thomas Berger")).toBeVisible({ timeout: 10000 });
-
-    // Passwort zurücksetzen
-    await page.getByRole("button", { name: "Passwort ändern" }).click();
-    const modal2 = page.locator(".mantine-Modal-body");
-    const pwInputs2 = modal2.locator("input[type='password']");
-    await pwInputs2.nth(0).fill("admin-neu");
-    await pwInputs2.nth(1).fill("admin");
-    await pwInputs2.nth(2).fill("admin");
-    await modal2.getByRole("button", { name: "Passwort ändern" }).click();
-    await expect(page.getByText("Passwort wurde geändert")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Willkommen, PW Tester")).toBeVisible({ timeout: 10000 });
   });
 });

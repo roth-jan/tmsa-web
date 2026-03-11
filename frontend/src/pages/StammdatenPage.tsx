@@ -16,6 +16,7 @@ import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from "ag-grid-community";
 import { api } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import { ConfirmModal, useConfirm } from "../components/ConfirmModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -59,6 +60,7 @@ export function StammdatenPage({
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [selectOptions, setSelectOptions] = useState<Record<string, { value: string; label: string }[]>>({});
+  const { modalProps, openConfirm } = useConfirm();
 
   const laden = useCallback(async () => {
     setLoading(true);
@@ -147,14 +149,19 @@ export function StammdatenPage({
     }
   };
 
-  const loeschen = async (id: string) => {
-    if (!confirm("Wirklich löschen?")) return;
-    try {
-      await api(`${apiEndpoint}/${id}`, { method: "DELETE" });
-      laden();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const loeschen = (id: string) => {
+    openConfirm({
+      title: "Eintrag löschen",
+      message: "Soll dieser Eintrag wirklich gelöscht werden?",
+      onConfirm: async () => {
+        try {
+          await api(`${apiEndpoint}/${id}`, { method: "DELETE" });
+          laden();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   const renderFormField = (field: FormField) => {
@@ -228,6 +235,7 @@ export function StammdatenPage({
             filter: true,
             resizable: true,
           }}
+          overlayNoRowsTemplate="Keine Daten vorhanden. Bitte Filterkriterien anpassen."
           rowSelection="single"
           onRowSelected={(e) => setSelectedRow(e.node.isSelected() ? e.data : null)}
           onRowDoubleClicked={(e) => darfBearbeiten && bearbeiten(e.data)}
@@ -257,6 +265,8 @@ export function StammdatenPage({
           </Group>
         </Stack>
       </Modal>
+
+      <ConfirmModal {...modalProps} />
     </Stack>
   );
 }

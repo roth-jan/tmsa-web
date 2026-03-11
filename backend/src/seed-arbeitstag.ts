@@ -46,9 +46,9 @@ async function seedArbeitstag() {
   const routeBmw1 = await prisma.route.findFirstOrThrow({ where: { routennummer: "BMW-R001" } });
   const routeBmw2 = await prisma.route.findFirstOrThrow({ where: { routennummer: "BMW-R002" } });
 
-  const kfzHT1 = await prisma.kfz.findFirstOrThrow({ where: { kennzeichen: "A-HT-1234" } });
-  const kfzHT2 = await prisma.kfz.findFirstOrThrow({ where: { kennzeichen: "A-HT-5678" } });
-  const kfzKS1 = await prisma.kfz.findFirstOrThrow({ where: { kennzeichen: "N-KS-9012" } });
+  const kfzHT1 = await prisma.kfz.findFirstOrThrow({ where: { kennzeichen: "A-HA-2847" } });
+  const kfzHT2 = await prisma.kfz.findFirstOrThrow({ where: { kennzeichen: "A-HA-6193" } });
+  const kfzKS1 = await prisma.kfz.findFirstOrThrow({ where: { kennzeichen: "N-KR-5934" } });
 
   const uspAug = await prisma.umschlagPunkt.findFirstOrThrow({ where: { kurzbezeichnung: "USP-AUG" } });
 

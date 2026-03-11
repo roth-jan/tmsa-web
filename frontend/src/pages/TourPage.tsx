@@ -9,6 +9,7 @@ import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from "ag-grid-community";
 import { api } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import { ConfirmModal, useConfirm } from "../components/ConfirmModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -19,7 +20,7 @@ const tourColumns: ColDef[] = [
     valueFormatter: (p: any) => p.value ? new Date(p.value).toLocaleDateString("de-DE") : "",
   },
   { field: "kfz.kennzeichen", headerName: "KFZ", width: 130 },
-  { field: "transportUnternehmer.kurzbezeichnung", headerName: "TU", width: 100 },
+  { field: "transportUnternehmer.kurzbezeichnung", headerName: "Transport-Untern.", headerTooltip: "Transport-Unternehmer", width: 130 },
   { field: "route.routennummer", headerName: "Route", width: 120 },
   { field: "_count.artikelzeilen", headerName: "Zeilen", width: 80 },
   { field: "status", headerName: "Status", width: 110 },
@@ -53,6 +54,7 @@ export function TourPage() {
   const [suche, setSuche] = useState("");
   const [selectedTour, setSelectedTour] = useState<any>(null);
   const [error, setError] = useState("");
+  const { modalProps, openConfirm } = useConfirm();
 
   const [modalOpen, { open: openModal, close: closeModal }] = useDisclosure(false);
   const [tourForm, setTourForm] = useState<Record<string, any>>({});
@@ -145,15 +147,20 @@ export function TourPage() {
     }
   };
 
-  const tourLoeschen = async (id: string) => {
-    if (!confirm("Tour wirklich löschen? Zugewiesene Zeilen werden freigegeben.")) return;
-    try {
-      await api(`/touren/${id}`, { method: "DELETE" });
-      if (selectedTour?.id === id) { setSelectedTour(null); setZeilen([]); }
-      ladeTouren();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const tourLoeschen = (id: string) => {
+    openConfirm({
+      title: "Tour löschen",
+      message: "Soll diese Tour wirklich gelöscht werden? Zugewiesene Zeilen werden freigegeben.",
+      onConfirm: async () => {
+        try {
+          await api(`/touren/${id}`, { method: "DELETE" });
+          if (selectedTour?.id === id) { setSelectedTour(null); setZeilen([]); }
+          ladeTouren();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   return (
@@ -169,6 +176,18 @@ export function TourPage() {
           )}
           {selectedTour && darfLoeschen && (
             <Button variant="light" color="red" onClick={() => tourLoeschen(selectedTour.id)}>Löschen</Button>
+          )}
+          {selectedTour && (
+            <>
+              <Button size="sm" variant="outline"
+                onClick={() => window.open(`${import.meta.env.VITE_API_URL || "/api"}/pdf/cmr/${selectedTour.id}`, "_blank")}>
+                CMR
+              </Button>
+              <Button size="sm" variant="outline"
+                onClick={() => window.open(`${import.meta.env.VITE_API_URL || "/api"}/pdf/tourbegleitschein/${selectedTour.id}`, "_blank")}>
+                Tourbegleitschein
+              </Button>
+            </>
           )}
         </Group>
       </Group>
@@ -261,6 +280,8 @@ export function TourPage() {
           </Group>
         </Stack>
       </Modal>
+
+      <ConfirmModal {...modalProps} />
     </Stack>
   );
 }

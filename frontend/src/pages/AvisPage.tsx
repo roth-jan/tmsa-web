@@ -9,6 +9,7 @@ import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from "ag-grid-community";
 import { api } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import { ConfirmModal, useConfirm } from "../components/ConfirmModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -66,6 +67,7 @@ export function AvisPage() {
   const [suche, setSuche] = useState("");
   const [selectedAvis, setSelectedAvis] = useState<any>(null);
   const [error, setError] = useState("");
+  const { modalProps, openConfirm } = useConfirm();
 
   // Avis Modal
   const [avisModalOpen, { open: openAvisModal, close: closeAvisModal }] = useDisclosure(false);
@@ -167,18 +169,23 @@ export function AvisPage() {
     }
   };
 
-  const avisLoeschen = async (id: string) => {
-    if (!confirm("Avis wirklich löschen?")) return;
-    try {
-      await api(`/avise/${id}`, { method: "DELETE" });
-      if (selectedAvis?.id === id) {
-        setSelectedAvis(null);
-        setZeilen([]);
-      }
-      ladeAvise();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const avisLoeschen = (id: string) => {
+    openConfirm({
+      title: "Avis löschen",
+      message: "Soll dieses Avis wirklich gelöscht werden?",
+      onConfirm: async () => {
+        try {
+          await api(`/avise/${id}`, { method: "DELETE" });
+          if (selectedAvis?.id === id) {
+            setSelectedAvis(null);
+            setZeilen([]);
+          }
+          ladeAvise();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   // Zeile CRUD
@@ -232,15 +239,22 @@ export function AvisPage() {
     }
   };
 
-  const zeileLoeschen = async (zeilenId: string) => {
-    if (!selectedAvis || !confirm("Zeile wirklich löschen?")) return;
-    try {
-      await api(`/avise/${selectedAvis.id}/zeilen/${zeilenId}`, { method: "DELETE" });
-      ladeZeilen(selectedAvis.id);
-      ladeAvise();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const zeileLoeschen = (zeilenId: string) => {
+    if (!selectedAvis) return;
+    const avisId = selectedAvis.id;
+    openConfirm({
+      title: "Artikelzeile löschen",
+      message: "Soll diese Zeile wirklich gelöscht werden?",
+      onConfirm: async () => {
+        try {
+          await api(`/avise/${avisId}/zeilen/${zeilenId}`, { method: "DELETE" });
+          ladeZeilen(avisId);
+          ladeAvise();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   const [selectedZeile, setSelectedZeile] = useState<any>(null);
@@ -412,6 +426,8 @@ export function AvisPage() {
           </Group>
         </Stack>
       </Modal>
+
+      <ConfirmModal {...modalProps} />
     </Stack>
   );
 }

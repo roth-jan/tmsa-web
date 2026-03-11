@@ -9,6 +9,7 @@ import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from "ag-grid-community";
 import { api } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import { ConfirmModal, useConfirm } from "../components/ConfirmModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -20,7 +21,7 @@ const abfahrtColumns: ColDef[] = [
   },
   { field: "tour.tourNummer", headerName: "Tour", width: 130 },
   { field: "kfz.kennzeichen", headerName: "KFZ", width: 120 },
-  { field: "transportUnternehmer.kurzbezeichnung", headerName: "TU", width: 90 },
+  { field: "transportUnternehmer.kurzbezeichnung", headerName: "Transport-Untern.", headerTooltip: "Transport-Unternehmer", width: 130 },
   { field: "route.routennummer", headerName: "Route", width: 110 },
   { field: "_count.borderos", headerName: "#Borderos", width: 100 },
   { field: "status", headerName: "Status", width: 110 },
@@ -52,6 +53,7 @@ export function AbfahrtPage() {
   const [selectedAbfahrt, setSelectedAbfahrt] = useState<any>(null);
   const [selectedBordero, setSelectedBordero] = useState<any>(null);
   const [error, setError] = useState("");
+  const { modalProps, openConfirm } = useConfirm();
 
   // Abfahrt aus Tour Modal
   const [ausTourModalOpen, { open: openAusTourModal, close: closeAusTourModal }] = useDisclosure(false);
@@ -152,18 +154,23 @@ export function AbfahrtPage() {
   };
 
   // Abfahrt löschen
-  const abfahrtLoeschen = async (id: string) => {
-    if (!confirm("Abfahrt wirklich löschen?")) return;
-    try {
-      await api(`/abfahrten/${id}`, { method: "DELETE" });
-      if (selectedAbfahrt?.id === id) {
-        setSelectedAbfahrt(null);
-        setBorderos([]);
-      }
-      ladeAbfahrten();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const abfahrtLoeschen = (id: string) => {
+    openConfirm({
+      title: "Abfahrt löschen",
+      message: "Soll diese Abfahrt wirklich gelöscht werden?",
+      onConfirm: async () => {
+        try {
+          await api(`/abfahrten/${id}`, { method: "DELETE" });
+          if (selectedAbfahrt?.id === id) {
+            setSelectedAbfahrt(null);
+            setBorderos([]);
+          }
+          ladeAbfahrten();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   // Bordero CRUD
@@ -208,15 +215,22 @@ export function AbfahrtPage() {
     }
   };
 
-  const borderoLoeschen = async (borderoId: string) => {
-    if (!selectedAbfahrt || !confirm("Bordero wirklich löschen?")) return;
-    try {
-      await api(`/abfahrten/${selectedAbfahrt.id}/borderos/${borderoId}`, { method: "DELETE" });
-      ladeBorderos(selectedAbfahrt.id);
-      ladeAbfahrten();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const borderoLoeschen = (borderoId: string) => {
+    if (!selectedAbfahrt) return;
+    const abfahrtId = selectedAbfahrt.id;
+    openConfirm({
+      title: "Bordero löschen",
+      message: "Soll dieses Bordero wirklich gelöscht werden?",
+      onConfirm: async () => {
+        try {
+          await api(`/abfahrten/${abfahrtId}/borderos/${borderoId}`, { method: "DELETE" });
+          ladeBorderos(abfahrtId);
+          ladeAbfahrten();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      },
+    });
   };
 
   return (
@@ -279,7 +293,7 @@ export function AbfahrtPage() {
           )}
           {selectedBordero && (
             <Button size="sm" variant="outline"
-              onClick={() => window.open(`http://localhost:3001/api/pdf/bordero/${selectedBordero.id}`, "_blank")}>
+              onClick={() => window.open(`${import.meta.env.VITE_API_URL || "/api"}/pdf/bordero/${selectedBordero.id}`, "_blank")}>
               PDF
             </Button>
           )}
@@ -369,6 +383,8 @@ export function AbfahrtPage() {
           </Group>
         </Stack>
       </Modal>
+
+      <ConfirmModal {...modalProps} />
     </Stack>
   );
 }

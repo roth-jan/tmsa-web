@@ -34,7 +34,7 @@ export function LoginPage() {
 
   return (
     <Center style={{ minHeight: "100vh", background: "#f0f2f5" }}>
-      <Paper shadow="md" p="xl" radius="md" style={{ width: 400 }}>
+      <Paper shadow="md" p="xl" radius="md" style={{ maxWidth: 400, width: "100%" }}>
         <Title order={2} mb="xs">
           TMSA Web
         </Title>

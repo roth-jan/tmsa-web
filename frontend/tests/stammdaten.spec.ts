@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-async function loginViaApi(page: any, user = "admin", pass = "admin") {
+async function loginViaApi(page: any, user = "admin", pass = "Admin1!") {
   await page.evaluate(
     async ({ u, p }: { u: string; p: string }) => {
       await fetch("http://localhost:3001/api/auth/login", {
@@ -65,8 +65,9 @@ test.describe("Werke", () => {
     await page.getByText(name).click();
 
     // Löschen
-    page.on("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Löschen" }).click();
+    // ConfirmModal bestätigen
+    await page.getByRole("dialog").getByRole("button", { name: "Löschen" }).click();
 
     // Prüfen dass weg
     await expect(page.getByText(name)).not.toBeVisible({ timeout: 5000 });
@@ -121,8 +122,9 @@ test.describe("KFZ", () => {
     await page.getByText(kennzeichen).click();
 
     // Löschen
-    page.on("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Löschen" }).click();
+    // ConfirmModal bestätigen
+    await page.getByRole("dialog").getByRole("button", { name: "Löschen" }).click();
 
     // Prüfen dass weg
     await expect(page.getByText(kennzeichen)).not.toBeVisible({
