@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Title, Button, Group, Select, Stack, Alert, Text, Code,
-  Paper, Table, Badge, Tabs, Textarea, Loader,
+  Paper, Table, Badge, Tabs, Textarea,
 } from "@mantine/core";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
