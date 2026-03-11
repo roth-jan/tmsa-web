@@ -30,6 +30,24 @@ services:
       CORS_ORIGIN: http://localhost
       NODE_ENV: production
       PORT: 3001
+      # EDI-Verzeichnisse
+      EDI_WATCH_DIR: /data/edi-eingang
+      EDI_ARCHIV_DIR: /data/edi-archiv
+      EDI_FEHLER_DIR: /data/edi-fehler
+      EDI_AUSGANG_DIR: /data/edi-ausgang
+      EDI_INTERVAL: "300000"
+      # SMTP (optional)
+      # SMTP_HOST: smtp.example.com
+      # SMTP_PORT: 587
+      # SMTP_USER: user@example.com
+      # SMTP_PASS: secret
+      # MAIL_FROM: tmsa@example.com
+    volumes:
+      - tmsa-backups:/data/backups
+      - tmsa-edi-eingang:/data/edi-eingang
+      - tmsa-edi-archiv:/data/edi-archiv
+      - tmsa-edi-fehler:/data/edi-fehler
+      - tmsa-edi-ausgang:/data/edi-ausgang
     # Port nur intern für nginx erreichbar, nicht nach außen exposen
     # ports:
     #   - "3001:3001"
@@ -45,3 +63,8 @@ services:
 
 volumes:
   tmsa-pgdata:
+  tmsa-backups:
+  tmsa-edi-eingang:
+  tmsa-edi-archiv:
+  tmsa-edi-fehler:
+  tmsa-edi-ausgang:

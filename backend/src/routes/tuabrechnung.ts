@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import prisma from "../db";
 import { requireAuth, requireRecht } from "../middleware/auth";
 import { berechneKosten, findeKondition } from "../services/konditionsberechnung";
+import { sendAbrechnungMail } from "../services/mail";
 
 const router = Router();
 router.use(requireAuth);
@@ -336,6 +337,15 @@ router.post("/erzeugen", requireRecht("tuabrechnung", "erstellen"), async (req: 
       });
 
       erstellteAbrechnungen.push(abrechnung);
+
+      // Mail-Benachrichtigung an TU (wenn konfiguriert)
+      const tuMitMail = await prisma.transportUnternehmer.findUnique({
+        where: { id: abrechnung.transportUnternehmerId },
+      });
+      if (tuMitMail?.email) {
+        sendAbrechnungMail(tuMitMail.email, abrechnung.belegnummer, abrechnung.gesamtbetrag)
+          .catch((err) => console.error("Mail-Versand TU-Abrechnung:", err));
+      }
     }
 
     res.json({ abrechnungen: erstellteAbrechnungen });
@@ -445,6 +455,12 @@ router.get("/:id", requireRecht("tuabrechnung", "lesen"), async (req: Request, r
 // ============================================================
 router.post("/:id/storno", requireRecht("tuabrechnung", "bearbeiten"), async (req: Request, res: Response) => {
   try {
+    const { stornoGrund } = req.body || {};
+
+    if (!stornoGrund || !stornoGrund.trim()) {
+      return res.status(400).json({ error: "Storno-Grund ist Pflicht" });
+    }
+
     const abrechnung = await prisma.tuAbrechnung.findUnique({
       where: { id: req.params.id },
       include: { positionen: true },
@@ -469,6 +485,16 @@ router.post("/:id/storno", requireRecht("tuabrechnung", "bearbeiten"), async (re
           data: { abrechnungsStatus: 0 },
         });
       }
+      // Storno-Protokoll
+      await tx.storno.create({
+        data: {
+          modell: "TuAbrechnung",
+          entitaetId: abrechnung.id,
+          stornoGrund: stornoGrund.trim(),
+          benutzerId: req.session.userId || null,
+          benutzerName: req.session.benutzername || null,
+        },
+      });
     });
 
     res.json({ storniertePositionen: tourIds.length });

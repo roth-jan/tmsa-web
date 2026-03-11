@@ -2,17 +2,21 @@ import { Router, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../db";
 import { requireAuth } from "../middleware/auth";
+import { loginLimiter, passwortLimiter } from "../middleware/rate-limit";
+import { setCsrfToken } from "../middleware/csrf";
+import { loginSchema, passwortAendernSchema, validatePasswort } from "../schemas";
 
 const router = Router();
 
 // POST /api/auth/login
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", loginLimiter, async (req: Request, res: Response) => {
   try {
-    const { benutzername, passwort } = req.body;
-
-    if (!benutzername || !passwort) {
-      return res.status(400).json({ error: "Benutzername und Passwort erforderlich" });
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.errors[0].message });
     }
+
+    const { benutzername, passwort } = parsed.data;
 
     const benutzer = await prisma.benutzer.findUnique({
       where: { benutzername },
@@ -52,6 +56,9 @@ router.post("/login", async (req: Request, res: Response) => {
     req.session.niederlassungId = benutzer.niederlassungId;
     req.session.rechte = rechte;
 
+    // CSRF-Token setzen
+    setCsrfToken(req, res);
+
     return res.json({
       data: {
         id: benutzer.id,
@@ -61,6 +68,7 @@ router.post("/login", async (req: Request, res: Response) => {
         niederlassung: benutzer.niederlassung?.name || null,
         niederlassungId: benutzer.niederlassungId,
         rechte,
+        csrfToken: (req.session as any).csrfToken,
       },
     });
   } catch (error) {
@@ -76,6 +84,7 @@ router.post("/logout", (req: Request, res: Response) => {
       return res.status(500).json({ error: "Logout fehlgeschlagen" });
     }
     res.clearCookie("connect.sid");
+    res.clearCookie("tmsa-csrf");
     return res.json({ data: { message: "Abgemeldet" } });
   });
 });
@@ -104,22 +113,20 @@ router.get("/me", async (req: Request, res: Response) => {
       niederlassung: benutzer.niederlassung?.name || null,
       niederlassungId: req.session.niederlassungId ?? benutzer.niederlassungId,
       rechte: req.session.rechte || [],
+      csrfToken: (req.session as any).csrfToken,
     },
   });
 });
 
 // POST /api/auth/passwort-aendern
-router.post("/passwort-aendern", requireAuth, async (req: Request, res: Response) => {
+router.post("/passwort-aendern", requireAuth, passwortLimiter, async (req: Request, res: Response) => {
   try {
-    const { altesPasswort, neuesPasswort } = req.body;
-
-    if (!altesPasswort || !neuesPasswort) {
-      return res.status(400).json({ error: "Altes und neues Passwort erforderlich" });
+    const parsed = passwortAendernSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.errors[0].message });
     }
 
-    if (neuesPasswort.length < 4) {
-      return res.status(400).json({ error: "Neues Passwort muss mindestens 4 Zeichen lang sein" });
-    }
+    const { altesPasswort, neuesPasswort } = parsed.data;
 
     const benutzer = await prisma.benutzer.findUnique({
       where: { id: req.session.userId },
@@ -152,17 +159,13 @@ router.post("/nl-wechseln", requireAuth, async (req: Request, res: Response) => 
   try {
     const { niederlassungId } = req.body;
 
-    // Nur Admins (Benutzer die KEINE feste NL haben oder auditlog.lesen haben) dürfen wechseln
-    // Prüfung: User mit benutzer.bearbeiten-Recht = Admin
     if (!req.session.rechte?.includes("benutzer.bearbeiten")) {
       return res.status(403).json({ error: "Nur Admins können die Niederlassung wechseln" });
     }
 
-    // null = Alle NL sehen
     if (niederlassungId === null || niederlassungId === "") {
       req.session.niederlassungId = null;
     } else {
-      // Prüfen ob NL existiert
       const nl = await prisma.niederlassung.findUnique({ where: { id: niederlassungId } });
       if (!nl) {
         return res.status(404).json({ error: "Niederlassung nicht gefunden" });

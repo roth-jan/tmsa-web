@@ -1,7 +1,10 @@
 import { Router, Request, Response } from "express";
+import fs from "fs";
+import path from "path";
 import { requireAuth, requireRecht } from "../middleware/auth";
 import prisma from "../db";
 import { parseEdi, detectFormat, ParsedIFTSTAResult } from "../services/edi-parser";
+import { generateVda4913, generateIftsta, EdiExportTour } from "../services/edi-generator";
 
 const router = Router();
 
@@ -189,6 +192,84 @@ router.get("/log", requireAuth, requireRecht("edi", "lesen"), async (req: Reques
 
     return res.json({ data, total });
   } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/edi/export/:format — EDI-Ausgang generieren
+router.post("/export/:format", requireAuth, requireRecht("edi", "erstellen"), async (req: Request, res: Response) => {
+  try {
+    const format = req.params.format.toUpperCase();
+    const { tourId, statusCode } = req.body;
+
+    if (!tourId) return res.status(400).json({ error: "tourId ist Pflicht" });
+
+    const tour = await prisma.tour.findUnique({
+      where: { id: tourId },
+      include: {
+        kfz: true,
+        transportUnternehmer: true,
+        route: true,
+        artikelzeilen: {
+          include: {
+            avis: {
+              include: {
+                lieferant: true,
+                werk: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!tour) return res.status(404).json({ error: "Tour nicht gefunden" });
+
+    const exportTour: EdiExportTour = {
+      tourNummer: tour.tourNummer,
+      tourDatum: tour.tourDatum,
+      status: tour.status,
+      kfzKennzeichen: tour.kfz?.kennzeichen,
+      tuName: tour.transportUnternehmer?.name,
+      routennummer: tour.route?.routennummer,
+      artikelzeilen: tour.artikelzeilen.map((az) => ({
+        beschreibung: az.artikelBeschreibung,
+        menge: Number(az.menge),
+        me: az.masseinheit,
+        gewicht: Number(az.gewicht || 0),
+        lieferantNr: az.avis?.lieferant?.lieferantennummer || undefined,
+        werkscode: az.avis?.werk?.werkscode || undefined,
+      })),
+    };
+
+    let content: string;
+    if (format === "VDA4913") {
+      content = generateVda4913(exportTour);
+    } else if (format === "IFTSTA") {
+      content = generateIftsta(exportTour, statusCode || "5");
+    } else {
+      return res.status(400).json({ error: `Unbekanntes Format: ${format}. Erlaubt: VDA4913, IFTSTA` });
+    }
+
+    // Optional: Datei in Ausgangsverzeichnis ablegen
+    const ediAusgangDir = process.env.EDI_AUSGANG_DIR || "/data/edi-ausgang";
+    try {
+      if (!fs.existsSync(ediAusgangDir)) fs.mkdirSync(ediAusgangDir, { recursive: true });
+      const filename = `${format}_${tour.tourNummer}_${new Date().toISOString().replace(/[:.]/g, "-")}.edi`;
+      fs.writeFileSync(path.join(ediAusgangDir, filename), content, "utf-8");
+    } catch {
+      // Verzeichnis nicht verfügbar — kein Fehler, Content wird trotzdem zurückgegeben
+    }
+
+    return res.json({
+      data: {
+        format,
+        tourNummer: tour.tourNummer,
+        content,
+      },
+    });
+  } catch (err: any) {
+    console.error("EDI-Export:", err);
     return res.status(500).json({ error: err.message });
   }
 });

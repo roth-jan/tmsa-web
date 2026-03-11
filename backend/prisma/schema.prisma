@@ -164,6 +164,7 @@ model TransportUnternehmer {
   adresse          String?
   plz              String?
   ort              String?
+  email            String?
   niederlassungId  String
   niederlassung    Niederlassung @relation(fields: [niederlassungId], references: [id])
   aktiv            Boolean   @default(true)
@@ -548,6 +549,40 @@ model EdiImport {
 
   @@index([format])
   @@index([erstelltAm])
+}
+
+// ============================================================
+// NUMMERNKREISE
+// ============================================================
+
+model Nummernkreis {
+  id              String    @id @default(uuid())
+  typ             String    // tour, abfahrt, bordero, sendung, tuAbrechnung
+  prefix          String    @default("")
+  letzteNummer    Int       @default(0)
+  format          String    @default("{PREFIX}{NUMMER}") // z.B. "T-{JAHR}-{NUMMER:5}"
+  niederlassungId String?
+  aktiv           Boolean   @default(true)
+  erstelltAm      DateTime  @default(now())
+  geaendertAm     DateTime  @updatedAt
+
+  @@unique([typ, niederlassungId])
+}
+
+// ============================================================
+// STORNO-PROTOKOLL
+// ============================================================
+
+model Storno {
+  id              String    @id @default(uuid())
+  modell          String    // Tour, Abfahrt, TuAbrechnung
+  entitaetId      String
+  stornoGrund     String
+  benutzerId      String?
+  benutzerName    String?
+  zeitpunkt       DateTime  @default(now())
+
+  @@index([modell, entitaetId])
 }
 
 // ============================================================

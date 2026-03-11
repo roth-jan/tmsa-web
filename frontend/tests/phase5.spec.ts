@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-async function loginViaApi(page: any, user = "admin", pass = "admin") {
+async function loginViaApi(page: any, user = "admin", pass = "Admin1!") {
   await page.evaluate(
     async ({ u, p }: { u: string; p: string }) => {
       await fetch("http://localhost:3001/api/auth/login", {
@@ -29,7 +29,7 @@ test.describe("Navigation Phase 5", () => {
 
   test("Disponent sieht Berichte im Menü", async ({ page }) => {
     await page.goto("/");
-    await loginViaApi(page, "dispo", "dispo");
+    await loginViaApi(page, "dispo", "Dispo1!");
     await page.goto("/");
 
     await expect(page.getByRole("link", { name: "Berichte" })).toBeVisible();
@@ -126,7 +126,7 @@ test.describe("Berichte — CSV-Export", () => {
   test("CSV-Endpoint liefert korrekten Content-Type", async ({ request }) => {
     // Login via Playwright request context
     await request.post("http://localhost:3001/api/auth/login", {
-      data: { benutzername: "admin", passwort: "admin" },
+      data: { benutzername: "admin", passwort: "Admin1!" },
     });
 
     const res = await request.get(

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-async function loginViaApi(page: any, user = "admin", pass = "admin") {
+async function loginViaApi(page: any, user = "admin", pass = "Admin1!") {
   await page.evaluate(
     async ({ u, p }: { u: string; p: string }) => {
       await fetch("http://localhost:3001/api/auth/login", {
@@ -40,7 +40,7 @@ test.describe("PDF Bordero", () => {
   test("Bordero PDF Endpoint liefert application/pdf", async ({ request }) => {
     // Login via Playwright request context (server-seitig, keine Browser-Cookie-Probleme)
     const loginRes = await request.post("http://localhost:3001/api/auth/login", {
-      data: { benutzername: "admin", passwort: "admin" },
+      data: { benutzername: "admin", passwort: "Admin1!" },
     });
     expect(loginRes.ok()).toBeTruthy();
 
@@ -92,7 +92,7 @@ test.describe("PDF TU-Abrechnung", () => {
 
   test("TU-Abrechnung PDF Endpoint liefert application/pdf", async ({ request }) => {
     const loginRes = await request.post("http://localhost:3001/api/auth/login", {
-      data: { benutzername: "admin", passwort: "admin" },
+      data: { benutzername: "admin", passwort: "Admin1!" },
     });
     expect(loginRes.ok()).toBeTruthy();
 

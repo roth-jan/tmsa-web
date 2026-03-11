@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 // Hilfsfunktion: Login via API (schneller als UI-Login)
-async function loginViaApi(page: any, user = "admin", pass = "admin") {
+async function loginViaApi(page: any, user = "admin", pass = "Admin1!") {
   await page.evaluate(
     async ({ u, p }: { u: string; p: string }) => {
       await fetch("http://localhost:3001/api/auth/login", {
@@ -24,7 +24,7 @@ test.describe("Login", () => {
 
   test("Login mit gültigen Daten → Dashboard", async ({ page }) => {
     await page.goto("/");
-    await loginViaApi(page, "admin", "admin");
+    await loginViaApi(page, "admin", "Admin1!");
     await page.goto("/");
 
     await expect(page.getByText("Willkommen, Thomas Berger")).toBeVisible();
@@ -33,7 +33,7 @@ test.describe("Login", () => {
 
   test("Login als Disponent → eingeschränkte Rechte", async ({ page }) => {
     await page.goto("/");
-    await loginViaApi(page, "dispo", "dispo");
+    await loginViaApi(page, "dispo", "Dispo1!");
     await page.goto("/");
 
     await expect(page.getByText("Willkommen, Lisa Maier")).toBeVisible();
@@ -65,7 +65,7 @@ test.describe("Berechtigungen", () => {
 
   test("Disponent sieht keinen Benutzer-NavLink", async ({ page }) => {
     await page.goto("/");
-    await loginViaApi(page, "dispo", "dispo");
+    await loginViaApi(page, "dispo", "Dispo1!");
     await page.goto("/");
 
     await expect(page.getByRole("link", { name: "Benutzer" })).not.toBeVisible();
@@ -73,7 +73,7 @@ test.describe("Berechtigungen", () => {
 
   test("Disponent sieht keine Bearbeiten-Buttons auf Werke", async ({ page }) => {
     await page.goto("/");
-    await loginViaApi(page, "dispo", "dispo");
+    await loginViaApi(page, "dispo", "Dispo1!");
     await page.goto("/werke");
 
     await expect(page.getByRole("heading", { name: "Werke" })).toBeVisible();

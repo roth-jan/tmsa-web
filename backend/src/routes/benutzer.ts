@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { requireAuth, requireRecht } from "../middleware/auth";
 import prisma from "../db";
+import { validatePasswort } from "../schemas";
 
 const router = Router();
 
@@ -190,6 +191,12 @@ router.post("/", requireAuth, requireRecht("benutzer", "erstellen"), async (req:
       return res.status(400).json({ error: "Benutzername, Passwort, Vorname und Nachname sind Pflicht" });
     }
 
+    // Passwort-Policy prüfen
+    const pwCheck = validatePasswort(passwort);
+    if (!pwCheck.valid) {
+      return res.status(400).json({ error: pwCheck.error });
+    }
+
     const passwortHash = await bcrypt.hash(passwort, 10);
 
     const benutzer = await prisma.benutzer.create({
@@ -236,6 +243,10 @@ router.put("/:id", requireAuth, requireRecht("benutzer", "bearbeiten"), async (r
 
     // Passwort nur ändern wenn angegeben
     if (passwort) {
+      const pwCheck = validatePasswort(passwort);
+      if (!pwCheck.valid) {
+        return res.status(400).json({ error: pwCheck.error });
+      }
       updateData.passwortHash = await bcrypt.hash(passwort, 10);
     }
 

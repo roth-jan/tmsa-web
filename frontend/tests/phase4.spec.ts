@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-async function loginViaApi(page: any, user = "admin", pass = "admin") {
+async function loginViaApi(page: any, user = "admin", pass = "Admin1!") {
   await page.evaluate(
     async ({ u, p }: { u: string; p: string }) => {
       await fetch("http://localhost:3001/api/auth/login", {
@@ -29,7 +29,7 @@ test.describe("Navigation Phase 4", () => {
 
   test("Disponent sieht TU-Abrechnung NICHT", async ({ page }) => {
     await page.goto("/");
-    await loginViaApi(page, "dispo", "dispo");
+    await loginViaApi(page, "dispo", "Dispo1!");
     await page.goto("/");
 
     // Abrechnung-Gruppe sollte nicht sichtbar sein (Disponent hat kein tuabrechnung-Recht)
@@ -176,9 +176,14 @@ test.describe("TU-Abrechnung — Workflow", () => {
     await page.locator('.ag-cell').filter({ hasText: "ABR-2026-001" }).first().click();
     await expect(page.getByText("Positionen: ABR-2026-001")).toBeVisible({ timeout: 5000 });
 
-    // ---- Schritt 4: Storno ----
+    // ---- Schritt 4: Storno (jetzt mit Pflicht-Grund-Modal) ----
     await expect(page.getByRole("button", { name: /stornieren/i })).toBeVisible();
     await page.getByRole("button", { name: /stornieren/i }).click();
+
+    // Storno-Modal: Grund eingeben und bestätigen
+    await expect(page.getByRole("heading", { name: "Abrechnung stornieren" })).toBeVisible();
+    await page.getByLabel("Storno-Grund (Pflicht)").fill("Test-Stornierung");
+    await page.getByRole("button", { name: "Stornieren", exact: true }).click();
     await expect(page.getByText(/Position\(en\)/)).toBeVisible({ timeout: 10000 });
   });
 });

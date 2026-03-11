@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import {
-  Title, Button, Group, TextInput, Stack, Alert, Text,
-  Badge, Paper, Tabs,
+  Title, Button, Group, TextInput, Textarea, Stack, Alert, Text,
+  Badge, Paper, Tabs, Modal,
 } from "@mantine/core";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
@@ -275,6 +275,8 @@ function AbrechnungenTab() {
   const [positionen, setPositionen] = useState<any[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [stornoModalOpen, setStornoModalOpen] = useState(false);
+  const [stornoGrund, setStornoGrund] = useState("");
 
   const statusFarben: Record<string, string> = {
     offen: "blue",
@@ -347,17 +349,22 @@ function AbrechnungenTab() {
   }, []);
 
   const stornieren = useCallback(async () => {
-    if (!selectedAbr) return;
+    if (!selectedAbr || !stornoGrund.trim()) return;
     setError("");
     try {
-      const res = await api(`/tu-abrechnung/${selectedAbr.id}/storno`, { method: "POST" });
+      const res = await api(`/tu-abrechnung/${selectedAbr.id}/storno`, {
+        method: "POST",
+        body: JSON.stringify({ stornoGrund: stornoGrund.trim() }),
+      });
       const msg = `Abrechnung ${selectedAbr.belegnummer} storniert (${res.storniertePositionen} Position(en))`;
+      setStornoModalOpen(false);
+      setStornoGrund("");
       await aktualisieren();
       setSuccess(msg);
     } catch (err: any) {
       setError(err.message);
     }
-  }, [selectedAbr, aktualisieren]);
+  }, [selectedAbr, stornoGrund, aktualisieren]);
 
   return (
     <Stack>
@@ -367,13 +374,13 @@ function AbrechnungenTab() {
       <Group>
         <Button onClick={aktualisieren}>Aktualisieren</Button>
         {darfBearbeiten && selectedAbr && selectedAbr.status !== "storniert" && (
-          <Button color="red" variant="outline" onClick={stornieren}>
+          <Button color="red" variant="outline" onClick={() => { setStornoGrund(""); setStornoModalOpen(true); }}>
             {selectedAbr.belegnummer} stornieren
           </Button>
         )}
         {selectedAbr && (
           <Button variant="outline"
-            onClick={() => window.open(`http://localhost:3001/api/pdf/tu-abrechnung/${selectedAbr.id}`, "_blank")}>
+            onClick={() => window.open(`${import.meta.env.VITE_API_URL || "/api"}/pdf/tu-abrechnung/${selectedAbr.id}`, "_blank")}>
             PDF
           </Button>
         )}
@@ -414,6 +421,30 @@ function AbrechnungenTab() {
           </div>
         </Paper>
       )}
+
+      {/* Storno-Modal mit Pflicht-Grund */}
+      <Modal opened={stornoModalOpen} onClose={() => setStornoModalOpen(false)} title="Abrechnung stornieren">
+        <Stack>
+          <Text size="sm">
+            Abrechnung <b>{selectedAbr?.belegnummer}</b> wirklich stornieren?
+            Alle zugehörigen Touren werden auf &quot;nicht abgerechnet&quot; zurückgesetzt.
+          </Text>
+          <Textarea
+            label="Storno-Grund (Pflicht)"
+            placeholder="Grund für die Stornierung eingeben..."
+            value={stornoGrund}
+            onChange={(e) => setStornoGrund(e.currentTarget.value)}
+            minRows={3}
+            required
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setStornoModalOpen(false)}>Abbrechen</Button>
+            <Button color="red" onClick={stornieren} disabled={!stornoGrund.trim()}>
+              Stornieren
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 }

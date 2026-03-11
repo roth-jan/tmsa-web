@@ -14,7 +14,7 @@ export default function globalSetup() {
     `npx tsx -e "
       const { PrismaClient } = require('@prisma/client');
       const prisma = new PrismaClient();
-      prisma.\\$executeRawUnsafe('TRUNCATE TABLE \\"ForecastDetail\\", \\"Forecast\\", \\"AuditLog\\", \\"EdiImport\\", \\"TuAbrechnungsPosition\\", \\"TuAbrechnung\\", \\"Streckenabschnitt\\", \\"Sendung\\", \\"Bordero\\", \\"Abfahrt\\", \\"Artikelzeile\\", \\"Tour\\", \\"Avis\\", \\"Kondition\\", \\"DispoRegel\\", \\"DispoOrt\\", \\"UmschlagPunkt\\", \\"Kfz\\", \\"TransportUnternehmer\\", \\"Route\\", \\"Abladestelle\\", \\"Werk\\", \\"Oem\\", \\"RolleRecht\\", \\"BenutzerRolle\\", \\"Recht\\", \\"Benutzer\\", \\"Rolle\\", \\"Niederlassung\\" CASCADE')
+      prisma.\\$executeRawUnsafe('TRUNCATE TABLE \\"session\\", \\"Storno\\", \\"Nummernkreis\\", \\"ForecastDetail\\", \\"Forecast\\", \\"AuditLog\\", \\"EdiImport\\", \\"TuAbrechnungsPosition\\", \\"TuAbrechnung\\", \\"Streckenabschnitt\\", \\"Sendung\\", \\"Bordero\\", \\"Abfahrt\\", \\"Artikelzeile\\", \\"Tour\\", \\"Avis\\", \\"Kondition\\", \\"DispoRegel\\", \\"DispoOrt\\", \\"UmschlagPunkt\\", \\"Kfz\\", \\"TransportUnternehmer\\", \\"Route\\", \\"Abladestelle\\", \\"Werk\\", \\"Oem\\", \\"RolleRecht\\", \\"BenutzerRolle\\", \\"Recht\\", \\"Benutzer\\", \\"Rolle\\", \\"Niederlassung\\" CASCADE')
       .then(() => prisma.\\$disconnect())
       .then(() => console.log('Tables truncated'));
     "`,

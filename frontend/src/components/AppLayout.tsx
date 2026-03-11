@@ -41,6 +41,7 @@ const navItems = [
   ]},
   { group: "Verwaltung", items: [
     { label: "Benutzer", path: "/benutzer", modul: "benutzer" },
+    { label: "Stammdaten-Import", path: "/stammdaten-import", modul: "stammdaten" },
     { label: "Audit-Log", path: "/audit-log", modul: "auditlog" },
   ]},
 ];

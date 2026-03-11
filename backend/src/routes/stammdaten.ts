@@ -253,3 +253,39 @@ export const umschlagPunktRouter = createStammdatenRouter({
   searchFields: ["name", "kurzbezeichnung", "ort"],
   nlFilterField: "niederlassungId",
 });
+
+// ============================================================
+// Nummernkreise — Separate Route (kein generisches CRUD)
+// ============================================================
+
+const nummernkreisRouter = Router();
+
+// GET /api/nummernkreise — Liste aller Nummernkreise
+nummernkreisRouter.get("/", requireAuth, requireRecht("benutzer", "bearbeiten"), async (_req: Request, res: Response) => {
+  try {
+    const data = await prisma.nummernkreis.findMany({ orderBy: [{ typ: "asc" }] });
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/nummernkreise/:id — Nummernkreis bearbeiten
+nummernkreisRouter.put("/:id", requireAuth, requireRecht("benutzer", "bearbeiten"), async (req: Request, res: Response) => {
+  try {
+    const { prefix, format, letzteNummer } = req.body;
+    const data = await prisma.nummernkreis.update({
+      where: { id: req.params.id },
+      data: {
+        ...(prefix !== undefined && { prefix }),
+        ...(format !== undefined && { format }),
+        ...(letzteNummer !== undefined && { letzteNummer }),
+      },
+    });
+    return res.json({ data });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+export { nummernkreisRouter };
