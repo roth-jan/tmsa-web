@@ -3,7 +3,10 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import { auditStore } from "./db";
+import { apiLimiter } from "./middleware/rate-limit";
+import { csrfProtection } from "./middleware/csrf";
 
 import authRouter from "./routes/auth";
 import benutzerRouter from "./routes/benutzer";
@@ -21,6 +24,9 @@ import dashboardRouter from "./routes/dashboard";
 import pdfRouter from "./routes/pdf";
 import ediRouter from "./routes/edi";
 import forecastRouter from "./routes/forecast";
+import importRouter from "./routes/import";
+import adminRouter from "./routes/admin";
+import { startEdiWatcher } from "./services/edi-watcher";
 import {
   niederlassungRouter,
   oemRouter,
@@ -34,6 +40,7 @@ import {
   dispoOrtRouter,
   dispoRegelRouter,
   umschlagPunktRouter,
+  nummernkreisRouter,
 } from "./routes/stammdaten";
 
 const app = express();
@@ -47,16 +54,30 @@ app.use(cors({
   exposedHeaders: ["Content-Disposition"],
 }));
 app.use(express.json());
+
+// Rate Limiting global
+app.use("/api", apiLimiter);
+
+// Session-Store: PostgreSQL (persistent über Server-Neustarts)
+const PgSession = connectPgSimple(session);
 app.use(session({
+  store: new PgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: "session",
+    createTableIfMissing: true,
+  }),
   secret: process.env.SESSION_SECRET || "fallback-secret",
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.COOKIE_SECURE === "true",
     httpOnly: true,
     maxAge: 8 * 60 * 60 * 1000, // 8 Stunden
   },
 }));
+
+// CSRF-Protection (nach Session, vor Routes)
+app.use(csrfProtection);
 
 // Audit-Context Middleware: User-Infos für Prisma-Middleware durchreichen
 app.use((req, _res, next) => {
@@ -81,6 +102,7 @@ app.use("/api/konditionen", konditionRouter);
 app.use("/api/dispo-orte", dispoOrtRouter);
 app.use("/api/dispo-regeln", dispoRegelRouter);
 app.use("/api/umschlag-punkte", umschlagPunktRouter);
+app.use("/api/nummernkreise", nummernkreisRouter);
 app.use("/api/avise", avisRouter);
 app.use("/api/touren", tourRouter);
 app.use("/api/mengenplan", mengenplanRouter);
@@ -95,6 +117,8 @@ app.use("/api/pdf", pdfRouter);
 app.use("/api/audit-log", auditRouter);
 app.use("/api/edi", ediRouter);
 app.use("/api/forecast", forecastRouter);
+app.use("/api/import", importRouter);
+app.use("/api/admin", adminRouter);
 
 // Health Check
 app.get("/api/health", (_req, res) => {
@@ -103,4 +127,10 @@ app.get("/api/health", (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`TMSA Backend läuft auf http://localhost:${PORT}`);
+
+  // EDI-Watcher starten (nur wenn Verzeichnis konfiguriert)
+  if (process.env.EDI_WATCH_DIR) {
+    startEdiWatcher();
+    console.log(`EDI-Watcher aktiv: ${process.env.EDI_WATCH_DIR} (Intervall: ${process.env.EDI_INTERVAL || 300000}ms)`);
+  }
 });
