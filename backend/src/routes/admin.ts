@@ -109,6 +109,12 @@ router.delete("/dsgvo-loeschen/:benutzerId", async (req: Request, res: Response)
       data: { benutzerName: "Gelöscht" },
     });
 
+    // Storno-Einträge anonymisieren
+    await prisma.storno.updateMany({
+      where: { benutzerId },
+      data: { benutzerName: "Gelöscht" },
+    });
+
     // Rollen entfernen
     await prisma.benutzerRolle.deleteMany({
       where: { benutzerId },

@@ -343,7 +343,7 @@ router.post("/erzeugen", requireRecht("tuabrechnung", "erstellen"), async (req: 
         where: { id: abrechnung.transportUnternehmerId },
       });
       if (tuMitMail?.email) {
-        sendAbrechnungMail(tuMitMail.email, abrechnung.belegnummer, abrechnung.gesamtbetrag)
+        sendAbrechnungMail(tuMitMail.email, abrechnung.belegnummer, tuMitMail.name, String(abrechnung.gesamtbetrag))
           .catch((err) => console.error("Mail-Versand TU-Abrechnung:", err));
       }
     }

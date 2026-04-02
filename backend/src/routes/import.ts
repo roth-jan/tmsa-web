@@ -114,6 +114,7 @@ router.post("/:modell", requireRecht("benutzer", "bearbeiten"), async (req: Requ
 
       // Daten aufbereiten
       const data: any = {};
+      let zeileUngueltig = false;
       for (const feld of [...config.pflichtFelder, ...config.optionalFelder]) {
         if (row[feld] !== undefined && row[feld] !== "") {
           // Numerische Felder konvertieren
@@ -121,7 +122,8 @@ router.post("/:modell", requireRecht("benutzer", "bearbeiten"), async (req: Requ
             const num = parseFloat(row[feld].replace(",", "."));
             if (isNaN(num)) {
               fehler.push({ zeile: zeilenNr, fehler: `Feld ${feld}: "${row[feld]}" ist keine gültige Zahl` });
-              continue;
+              zeileUngueltig = true;
+              break;
             }
             data[feld] = num;
           } else {
@@ -130,6 +132,7 @@ router.post("/:modell", requireRecht("benutzer", "bearbeiten"), async (req: Requ
         }
       }
 
+      if (zeileUngueltig) continue;
       valideZeilen.push(data);
     }
 

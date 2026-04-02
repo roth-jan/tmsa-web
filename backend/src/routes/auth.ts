@@ -104,6 +104,12 @@ router.get("/me", async (req: Request, res: Response) => {
     return res.status(401).json({ error: "Benutzer nicht gefunden" });
   }
 
+  // CSRF Token generieren falls Session aus der Zeit vor PostgreSQL-Sessions stammt
+  if (!(req.session as any).csrfToken) {
+    const { randomBytes } = await import("node:crypto");
+    (req.session as any).csrfToken = randomBytes(32).toString("hex");
+  }
+
   return res.json({
     data: {
       id: benutzer.id,
